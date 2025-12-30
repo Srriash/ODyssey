@@ -1,9 +1,9 @@
-# ODyssey - Growth Curve Workbench
+# ODyssey
 
 ## Research Proposal
 
 ### Project Summary
-ODyssey - Growth Curve Workbench is a local, notebook-first tool that lets lab users load growth curve datasets, analyze growth kinetics, and compare new results to prior runs without re-entering settings every time. The core innovation is a "project file" that persists run metadata, parsing rules, and analysis options, enabling a workflow similar to commercial qPCR software: open, adjust, re-run, and save.
+ODyssey, a Growth Curve Workbench is a local, notebook-first tool that lets lab users load growth curve datasets, analyze growth kinetics, and compare new results to prior runs without re-entering settings every time. The core innovation is a "project file" that persists run metadata, parsing rules, and analysis options, enabling a workflow similar to commercial qPCR software: open, adjust, re-run, and save.
 
 ### Problem Statement
 Current growth curve workflows are fragmented: users must repeatedly specify file paths, sheet names, replicate mappings, and analysis windows. This leads to friction, inconsistent analysis, and poor reproducibility across runs and users. A lightweight, local system tailored to growth curves can reduce overhead while preserving flexibility.
