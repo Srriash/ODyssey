@@ -1,0 +1,157 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ODyssey - Growth Curve Workbench</title>
+    <meta name="description" content="ODyssey turns messy growth-curve files into a repeatable journey. Upload, map, fit, compare, and export in minutes." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav">
+        <a class="brand" href="#">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 120 48" role="img" aria-label="OD monogram">
+              <defs>
+                <linearGradient id="od-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#0E6BA8" />
+                  <stop offset="100%" stop-color="#25A18E" />
+                </linearGradient>
+              </defs>
+              <circle cx="24" cy="24" r="18" fill="none" stroke="url(#od-grad)" stroke-width="4" />
+              <path d="M56 8h10c10.5 0 19 8.5 19 19s-8.5 19-19 19H56V8z" fill="none" stroke="url(#od-grad)" stroke-width="4" />
+              <path d="M60 34c6-4 12-8 18-18" fill="none" stroke="#0E6BA8" stroke-width="3" stroke-linecap="round" />
+              <circle cx="84" cy="16" r="3" fill="#25A18E" />
+            </svg>
+          </span>
+          <span class="brand-text">ODyssey</span>
+        </a>
+        <div class="nav-actions">
+          <a class="nav-link" href="index.html">Home</a>
+          <a class="nav-link" href="index.html#features">Features</a>
+          <a class="nav-link" href="how-it-works.html">How It Works</a>
+          <a class="nav-link" href="example.html">Example Run</a>
+          <a class="nav-link" href="built.html">How It’s Built</a>
+          <a class="button ghost" href="http://localhost:8501">Launch App</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section id="home" class="hero">
+        <div class="hero-content">
+          <p class="eyebrow">Growth Curve Workbench</p>
+          <h1>Your growth-curve odyssey, charted.</h1>
+          <p class="subhead">
+            ODyssey turns messy plate reader files into a repeatable journey for bacterial growth
+            curves - upload, map, fit, compare, and export in minutes. It can also support other
+            time-series growth assays with similar kinetics. From first data point to final report,
+            every step is designed to keep your analysis on course.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#how-it-works">Explore How It Works</a>
+            <a class="button ghost" href="http://localhost:8501">Launch App</a>
+          </div>
+          <div class="hero-metrics">
+            <div>
+              <p class="metric">Reusable configs</p>
+              <p class="metric-desc">Save your parsing rules and rerun in seconds.</p>
+            </div>
+            <div>
+              <p class="metric">Auto-fit windows</p>
+              <p class="metric-desc">Find the cleanest exponential phase automatically.</p>
+            </div>
+            <div>
+              <p class="metric">Export-ready</p>
+              <p class="metric-desc">Download CSV, plots, and reports in one bundle.</p>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="card">
+            <div class="card-header">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="card-body">
+              <div class="chart">
+                <div class="axis y"></div>
+                <div class="axis x"></div>
+                <svg class="chart-svg" viewBox="0 0 320 160" role="img" aria-label="Growth curve">
+                  <defs>
+                    <linearGradient id="curve-grad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#0e6ba8" />
+                      <stop offset="100%" stop-color="#25a18e" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="190" y="26" width="92" height="104" rx="16" fill="rgba(255, 193, 7, 0.22)" stroke="rgba(255, 193, 7, 0.7)" stroke-dasharray="4 4" />
+                  <path d="M24 130 C70 126, 110 122, 146 112 C178 102, 198 84, 214 62 C230 40, 252 30, 296 26" fill="none" stroke="url(#curve-grad)" stroke-width="4" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="labels">
+                <span>Fit window</span>
+                <div class="badges">
+                  <span class="badge ghost">Auto-fit</span>
+                  <span class="badge">R2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="orbit"></div>
+        </div>
+      </section>
+      <section id="features" class="features">
+        <div class="section-head">
+          <p class="eyebrow">Features</p>
+          <h2>Everything you need to go from raw OD to shareable results.</h2>
+          <p class="section-subhead">
+            ODyssey is built for repeatable growth-curve analysis: parse once, reuse forever, and
+            compare runs with confidence.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-dot dot-1" aria-hidden="true"></span>
+            <h3>Config-driven workflows</h3>
+            <p>Save parsing rules, time windows, and labels so future runs start instantly.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-dot dot-2" aria-hidden="true"></span>
+            <h3>Growth rate + doubling time</h3>
+            <p>Fit log(OD) vs time and export growth metrics with QC flags.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-dot dot-3" aria-hidden="true"></span>
+            <h3>Area under the curve</h3>
+            <p>Compute AUC using full range, fit window, or custom intervals.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-dot dot-4" aria-hidden="true"></span>
+            <h3>Plot groups + SD bands</h3>
+            <p>Overlay treatments or small-multiple views with optional SD shading.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-dot dot-5" aria-hidden="true"></span>
+            <h3>Comparison-ready exports</h3>
+            <p>Bundle results, plots, and long-format data into a single zip.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-dot dot-6" aria-hidden="true"></span>
+            <h3>Run comparisons</h3>
+            <p>Compare metrics and growth curves across runs with optional renaming.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+
+

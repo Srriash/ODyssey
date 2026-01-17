@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ODyssey - How It Works</title>
+    <meta name="description" content="How ODyssey runs analysis and compares runs, plus detailed UI controls." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav">
+        <a class="brand" href="index.html">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 120 48" role="img" aria-label="OD monogram">
+              <defs>
+                <linearGradient id="od-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#0E6BA8" />
+                  <stop offset="100%" stop-color="#25A18E" />
+                </linearGradient>
+              </defs>
+              <circle cx="24" cy="24" r="18" fill="none" stroke="url(#od-grad)" stroke-width="4" />
+              <path d="M56 8h10c10.5 0 19 8.5 19 19s-8.5 19-19 19H56V8z" fill="none" stroke="url(#od-grad)" stroke-width="4" />
+              <path d="M60 34c6-4 12-8 18-18" fill="none" stroke="#0E6BA8" stroke-width="3" stroke-linecap="round" />
+              <circle cx="84" cy="16" r="3" fill="#25A18E" />
+            </svg>
+          </span>
+          <span class="brand-text">ODyssey</span>
+        </a>
+        <div class="nav-actions">
+          <a class="nav-link" href="index.html">Home</a>
+          <a class="nav-link" href="index.html#features">Features</a>
+          <a class="nav-link" href="how-it-works.html">How It Works</a>
+          <a class="nav-link" href="example.html">Example Run</a>
+          <a class="nav-link" href="built.html">How It’s Built</a>
+          <a class="button ghost" href="http://localhost:8501">Launch App</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section id="how-it-works" class="how-it-works">
+        <div class="section-head">
+          <p class="eyebrow">How It Works</p>
+          <h2>From raw file to publishable insight in one guided flow.</h2>
+          <p class="section-subhead">
+            ODyssey turns each experiment into a repeatable path. Save your parsing rules, reuse
+            fit windows, and compare new runs without reconfiguring the whole pipeline.
+          </p>
+        </div>
+        <div class="subsection">
+          <h3>Analysis flow</h3>
+          <div class="steps">
+            <article class="step">
+              <span class="step-number">01</span>
+              <h3>Upload a single Excel file</h3>
+              <p>Select the sheet that contains your time series and confirm the time column.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">02</span>
+              <h3>Map replicates and treatments</h3>
+              <p>Group columns into treatments, confirm replicate names, and save the config.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">03</span>
+              <h3>Confirm the growth window</h3>
+              <p>Use the highlighted exponential phase or adjust the fit window manually.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">04</span>
+              <h3>Run the analysis</h3>
+              <p>ODyssey fits growth rates, doubling time, and area under the curve in a single run.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">05</span>
+              <h3>Export a full results bundle</h3>
+              <p>Download results, plots, and long-format data for reuse or sharing.</p>
+            </article>
+          </div>
+        </div>
+        <div class="subsection">
+          <h3>Compare runs</h3>
+          <div class="steps">
+            <article class="step">
+              <span class="step-number">01</span>
+              <h3>Upload zip exports</h3>
+              <p>Each zip should include results.csv and long_df.csv for curve overlays.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">02</span>
+              <h3>Rename treatments (optional)</h3>
+              <p>Standardize labels across runs so comparisons line up cleanly.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">03</span>
+              <h3>Compare metrics</h3>
+              <p>Use grouped bars to compare growth rate, doubling time, and AUC.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">04</span>
+              <h3>Overlay growth curves</h3>
+              <p>Pick runs and treatments, then toggle SD bands and tick intervals.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="ui-controls" class="ui-controls">
+        <div class="section-head">
+          <p class="eyebrow">UI Controls</p>
+          <h2>Every toggle and button, explained with context.</h2>
+          <p class="section-subhead">
+            A detailed walkthrough of each control, organized by the analysis flow and the
+            compare-runs flow.
+          </p>
+        </div>
+        <div class="subsection">
+          <h3>Run analysis</h3>
+        </div>
+        <div class="control-grid">
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Upload Excel file + config (optional)</h3>
+              <p>Upload a single Excel file for analysis. Optionally attach a saved config to restore sheet, column, plot, and label settings.</p>
+              <ul>
+                <li>Upload Excel file</li>
+                <li>Upload config (optional)</li>
+                <li>Informational prompt if no file is uploaded</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Sheet + time settings</h3>
+              <p>Select the worksheet, then confirm the time column and time unit before analysis.</p>
+              <ul>
+                <li>Sheet selector</li>
+                <li>Time column dropdown</li>
+                <li>Time unit selector (minutes, hours, hh:mm:ss)</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Replicate mapping</h3>
+              <p>Group columns into treatments and add replicate groups for clean aggregation.</p>
+              <ul>
+                <li>Replicate column multi-select</li>
+                <li>Treatment name input</li>
+                <li>Add group / clear groups</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Preview + fit window</h3>
+              <p>Inspect the preview plot, set the exponential window, and optionally compute live R2.</p>
+              <ul>
+                <li>Fit window slider</li>
+                <li>Live R2 toggle or calculate button</li>
+                <li>Highlighted window readout</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>AUC settings</h3>
+              <p>Choose how to compute area under the curve and preview the selected window.</p>
+              <ul>
+                <li>AUC unit selector</li>
+                <li>AUC window mode</li>
+                <li>Custom range slider</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Run analysis + results</h3>
+              <p>Run the analysis, view fit results with QC flags, and review definitions.</p>
+              <ul>
+                <li>Run analysis button</li>
+                <li>Results table</li>
+                <li>QC flags column</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Growth curve plots</h3>
+              <p>Choose overlay, small multiples, or compare-runs layout, with optional SD bands.</p>
+              <ul>
+                <li>Plot layout selector</li>
+                <li>Show SD band toggle</li>
+                <li>Plot group controls</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Custom tick intervals (plots)</h3>
+              <p>Optionally set X/Y tick spacing before exporting growth curve plots.</p>
+              <ul>
+                <li>Custom tick intervals toggle</li>
+                <li>X-axis interval input</li>
+                <li>Y-axis interval input</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Downloads</h3>
+              <p>Export results, config, plots, reports, and long-format data in a single zip.</p>
+              <ul>
+                <li>Results CSV</li>
+                <li>Long format CSV</li>
+                <li>Build download zip</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="subsection">
+          <h3>Compare runs</h3>
+        </div>
+        <div class="control-grid">
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Zip upload</h3>
+              <p>Upload ODyssey zip exports to compare without re-running analysis.</p>
+              <ul>
+                <li>Upload ODyssey zip(s)</li>
+                <li>Loaded runs status</li>
+                <li>Consistency warning</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Rename treatments (optional)</h3>
+              <p>Standardize labels across runs so comparisons line up cleanly.</p>
+              <ul>
+                <li>Rename fields per treatment</li>
+                <li>Applied to tables and plots</li>
+                <li>Optional</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Comparison table + summary</h3>
+              <p>Review per-run tables and mean summaries by treatment.</p>
+              <ul>
+                <li>Combined table</li>
+                <li>Summary table</li>
+                <li>Sorted by treatment</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Metric comparison (bar chart)</h3>
+              <p>Compare the same treatment across runs using grouped bars.</p>
+              <ul>
+                <li>Metric selector</li>
+                <li>Treatment multi-select</li>
+                <li>Grouped bar plot</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Growth curve comparison</h3>
+              <p>Overlay growth curves from multiple runs with optional SD bands.</p>
+              <ul>
+                <li>Run selector</li>
+                <li>Show SD band toggle</li>
+                <li>Download plot</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card">
+            <div class="control-details">
+              <h3>Custom tick intervals (curves)</h3>
+              <p>Control X/Y tick spacing for comparison plots before download.</p>
+              <ul>
+                <li>Custom tick intervals toggle</li>
+                <li>X-axis interval input</li>
+                <li>Y-axis interval input</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

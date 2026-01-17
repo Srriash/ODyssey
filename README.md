@@ -3,7 +3,7 @@
 ## Research Proposal
 
 ### Project Summary
-ODyssey - Growth Curve Workbench is a local, notebook-first tool that lets lab users load growth curve datasets, analyze growth kinetics, and compare new results to prior runs without re-entering settings every time. The core innovation is a "project file" that persists run metadata, parsing rules, and analysis options, enabling a workflow similar to commercial qPCR software: open, adjust, re-run, and save.
+ODyssey - Growth Curve Workbench is a local, student-friendly web app that lets lab users load growth curve datasets, analyze growth kinetics, and re-run analyses without repeatedly re-entering settings. The core innovation is a reusable config file that stores parsing rules and analysis options so users can drop in a new Excel file and go straight to results.
 
 ### Problem Statement
 Current growth curve workflows are fragmented: users must repeatedly specify file paths, sheet names, replicate mappings, and analysis windows. This leads to friction, inconsistent analysis, and poor reproducibility across runs and users. A lightweight, local system tailored to growth curves can reduce overhead while preserving flexibility.
@@ -16,12 +16,11 @@ Current growth curve workflows are fragmented: users must repeatedly specify fil
 - Flag questionable fits (e.g., low R2, negative slopes) to prompt review.
 
 ### Proposed Solution
-The tool will be delivered as a Jupyter notebook with a simple UI (ipywidgets) and a local persistence layer (JSON + SQLite). Users can:
-- Create or open a project file.
-- Load Excel data and define sheet names, time columns, and well labels.
-- Select strains/conditions to visualize and group them for plots.
-- Choose growth-window detection (manual range or auto-fit by max R2).
-- Save results and settings for future comparison.
+The tool will be delivered as a local web app (Streamlit) with a streamlined UI and a reusable JSON config file. Users can:
+- Upload Excel data and confirm auto-detected sheet/time/columns.
+- Save a config file that captures selections and analysis settings.
+- Reuse the config to skip setup on future runs.
+- Run analysis and download results as CSV.
 
 ### Methods
 1. Data ingestion via `pandas.read_excel`.
@@ -50,11 +49,25 @@ The tool will be delivered as a Jupyter notebook with a simple UI (ipywidgets) a
 
 ### Tech Stack
 - Python 3.9+
-- pandas, numpy, scipy
-- matplotlib, seaborn
-- openpyxl, ipywidgets
+- pandas, numpy
+- openpyxl
+- streamlit
 
-### Timeline (Proposed)
-- Week 1: define project schema, ingestion, parsing.
-- Week 2: analysis methods (growth rate, window selection).
-- Week 3-4: UI, persistence, comparisons, reporting.
+
+## Quick Start (Local Web App)
+
+1. Create a virtual environment and install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Start the app:
+
+```bash
+streamlit run app.py
+```
+
+3. Upload an Excel file, optionally upload a saved config, and run the analysis.
+
+Use "Generate config" to download a config file for future runs.
