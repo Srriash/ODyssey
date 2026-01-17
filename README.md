@@ -1,4 +1,4 @@
-# ODyssey - Growth Curve Workbench
+# ODyssey
 
 ## Research Proposal
 
