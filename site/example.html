@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ODyssey - Example Run</title>
+    <meta name="description" content="Download example files and walk through an ODyssey analysis and comparison." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav">
+        <a class="brand" href="index.html">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 120 48" role="img" aria-label="OD monogram">
+              <defs>
+                <linearGradient id="od-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#0E6BA8" />
+                  <stop offset="100%" stop-color="#25A18E" />
+                </linearGradient>
+              </defs>
+              <circle cx="24" cy="24" r="18" fill="none" stroke="url(#od-grad)" stroke-width="4" />
+              <path d="M56 8h10c10.5 0 19 8.5 19 19s-8.5 19-19 19H56V8z" fill="none" stroke="url(#od-grad)" stroke-width="4" />
+              <path d="M60 34c6-4 12-8 18-18" fill="none" stroke="#0E6BA8" stroke-width="3" stroke-linecap="round" />
+              <circle cx="84" cy="16" r="3" fill="#25A18E" />
+            </svg>
+          </span>
+          <span class="brand-text">ODyssey</span>
+        </a>
+        <div class="nav-actions">
+          <a class="nav-link" href="index.html">Home</a>
+          <a class="nav-link" href="index.html#features">Features</a>
+          <a class="nav-link" href="how-it-works.html">How It Works</a>
+          <a class="nav-link" href="example.html">Example Run</a>
+          <a class="nav-link" href="built.html">How It's Built</a>
+          <a class="button ghost" href="https://odyssey-workbench.streamlit.app/">Launch App</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="example-run">
+        <div class="section-head">
+          <p class="eyebrow">Example Run</p>
+          <h2>Practice the full workflow with a ready-made dataset.</h2>
+          <p class="section-subhead">
+            Download the example files, run a full analysis, and then compare the two runs using the
+            comparison workflow.
+          </p>
+        </div>
+
+        <div class="subsection">
+          <h3>Download the example files</h3>
+          <p class="section-subhead">
+            Example files live in the repo under <strong>sample_data/</strong>. Use the buttons below
+            if you are browsing the repo locally.
+          </p>
+          <div class="steps">
+            <article class="step">
+              <span class="step-number">File 01</span>
+              <h3>example_run1.xlsx</h3>
+              <p>Two sheets with a single time column and multiple treatments.</p>
+              <div class="hero-actions">
+                <a class="button primary" href="../sample_data/example_run1.xlsx" download>Download file</a>
+              </div>
+            </article>
+            <article class="step">
+              <span class="step-number">File 02</span>
+              <h3>example_run2.xlsx</h3>
+              <p>Second run with matching treatments for comparison.</p>
+              <div class="hero-actions">
+                <a class="button primary" href="../sample_data/example_run2.xlsx" download>Download file</a>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3>Run analysis with example_run1.xlsx</h3>
+          <div class="steps">
+            <article class="step">
+              <span class="step-number">01</span>
+              <h3>Upload the file</h3>
+              <p>Choose <strong>example_run1.xlsx</strong> from your local machine.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">02</span>
+              <h3>Select the sheet + time column</h3>
+              <p>Pick Sheet1, confirm the time column, and set the time unit.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">03</span>
+              <h3>Blank normalization (optional)</h3>
+              <p>If the data is not blank-normalized, select one or more blank columns.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">04</span>
+              <h3>Map treatments + replicates</h3>
+              <p>Group columns into treatments, then add each replicate group.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">05</span>
+              <h3>Fit and export</h3>
+              <p>Confirm the fit window, run analysis, and download the zip export.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3>Compare runs using example_run1.xlsx + example_run2.xlsx</h3>
+          <div class="steps">
+            <article class="step">
+              <span class="step-number">01</span>
+              <h3>Analyze both runs</h3>
+              <p>Run analysis on each file and export the zip from Downloads.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">02</span>
+              <h3>Upload zip exports</h3>
+              <p>Use the Compare Runs section to load the zip files.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">03</span>
+              <h3>Review metrics</h3>
+              <p>Inspect grouped bar plots to compare growth rate, doubling time, and AUC.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">04</span>
+              <h3>Overlay growth curves</h3>
+              <p>Select treatments and show SD bands to compare curves directly.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

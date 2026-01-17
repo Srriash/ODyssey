@@ -71,9 +71,13 @@ def _analyze_file(
     time_window,
     auto_window,
     min_points,
+    blank_normalized,
+    blank_cols,
     auc_window=None,
 ):
     df = _read_excel_file(uploaded, sheet_name)
+    if not blank_normalized and blank_cols:
+        df = _apply_blank_normalization(df, time_col, blank_cols)
     time_series = _parse_time_series(df[time_col])
     time_series = _apply_time_unit(time_series, time_unit if time_unit != "hh:mm:ss" else "minutes")
     working_df = df.copy()
@@ -108,6 +112,20 @@ def _analyze_file(
         "mean_df": mean_df,
         "auc": auc_df,
     }
+
+
+def _apply_blank_normalization(df, time_col, blank_col):
+    working_df = df.copy()
+    data_cols = [c for c in working_df.columns if c != time_col]
+    numeric = working_df[data_cols].apply(pd.to_numeric, errors="coerce")
+    if isinstance(blank_col, (list, tuple, pd.Index)):
+        blank_cols = list(blank_col)
+    else:
+        blank_cols = [blank_col]
+    blank_vals = working_df[blank_cols].apply(pd.to_numeric, errors="coerce")
+    blank_mean = blank_vals.mean(axis=1)
+    working_df[data_cols] = numeric.sub(blank_mean, axis=0)
+    return working_df
 def main():
     st.set_page_config(page_title=APP_TITLE, layout="wide")
     st.title(APP_TITLE)
@@ -402,20 +420,49 @@ def main():
         default_time = time_candidates[0]
 
     st.subheader("Preview")
-    st.dataframe(df.head(10))
     col1, col2 = st.columns([2, 3])
     with col1:
         time_col = st.selectbox("Time column", options=df.columns.tolist(), index=df.columns.get_loc(default_time))
         time_unit = st.selectbox("Time unit", options=["minutes", "hours", "hh:mm:ss"], index=0)
+        blank_normalized_default = config.get("blank_normalized", True) if config else True
+        blank_normalized = st.checkbox(
+            "OD values already blank-normalized?",
+            value=blank_normalized_default,
+        )
+        blank_cols = []
+        working_df = df.copy()
+        if not blank_normalized:
+            blank_candidates = [c for c in df.columns if c != time_col]
+            if blank_candidates:
+                default_blank_cols = []
+                if config:
+                    default_blank_cols = config.get("blank_cols") or []
+                    if not default_blank_cols and config.get("blank_col"):
+                        default_blank_cols = [config.get("blank_col")]
+                default_blank_cols = [c for c in default_blank_cols if c in blank_candidates]
+                blank_cols = st.multiselect(
+                    "Blank column(s)",
+                    options=blank_candidates,
+                    default=default_blank_cols,
+                )
+                if blank_cols:
+                    working_df = _apply_blank_normalization(df, time_col, blank_cols)
+                else:
+                    st.warning("Select at least one blank column for normalization.")
+            else:
+                st.warning("No columns available for blank normalization.")
+                blank_normalized = True
         base_unit = _base_time_unit(time_unit)
         fit_window_mode = "Auto+Manual"
         min_points = int(config.get("min_points", 5)) if config else 5
         time_window = None
 
+    st.dataframe(working_df.head(10))
+
     validation_issues = _validate_data(
-        df,
+        working_df,
         time_col=time_col,
-        data_cols=[c for c in df.columns if c != time_col],
+        data_cols=[c for c in working_df.columns if c != time_col],
     )
     if validation_issues:
         st.warning("Data validation warnings:")
@@ -424,7 +471,11 @@ def main():
 
     with col2:
         config_map = config.get("column_map") if config else None
-        available_cols = [c for c in df.columns if c != time_col]
+        available_cols = [
+            c
+            for c in working_df.columns
+            if c != time_col and c not in set(blank_cols)
+        ]
 
         if "replicate_groups" not in st.session_state:
             st.session_state.replicate_groups = []
@@ -549,6 +600,8 @@ def main():
                 time_col,
                 time_unit,
                 column_map_json,
+                blank_normalized,
+                blank_cols,
             )
             if preview_mean_df.empty:
                 st.warning("Preview unavailable: no data after parsing.")
@@ -723,6 +776,8 @@ def main():
                     time_window,
                     False,
                     min_points,
+                    blank_normalized,
+                    blank_cols,
                     auc_window=auc_use_window,
                 )
                 analysis["results"]["run"] = uploaded.name
@@ -980,6 +1035,8 @@ def main():
         time_window,
         fit_window_mode,
         min_points,
+        blank_normalized,
+        blank_cols,
         auc_mode,
         auc_window,
         auc_unit,
