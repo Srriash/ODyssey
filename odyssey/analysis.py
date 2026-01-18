@@ -47,7 +47,7 @@ def _linear_fit(x, y):
 
 
 def _best_window_fit(x, y, min_points=5, min_slope=0.0, anchor_start=False):
-    best = {"r2": -np.inf}
+    best = {"score": -np.inf}
     n = len(x)
     start_indices = [0] if anchor_start else range(0, n - min_points + 1)
     for i in start_indices:
@@ -59,16 +59,43 @@ def _best_window_fit(x, y, min_points=5, min_slope=0.0, anchor_start=False):
                 continue
             if np.isnan(r2):
                 continue
-            if r2 > best["r2"]:
+            window_fraction = len(xw) / n
+            score = r2 + 0.02 * np.tanh(slope) + 0.01 * window_fraction
+            if score > best["score"]:
                 best = {
                     "slope": slope,
                     "intercept": intercept,
                     "r2": r2,
+                    "score": score,
                     "n": len(xw),
                     "t_min": float(xw[0]),
                     "t_max": float(xw[-1]),
                 }
     return best
+
+
+def _detect_exponential_start(x, y):
+    if len(x) < 4:
+        return None
+    dy = np.diff(y)
+    dx = np.diff(x)
+    valid = dx > 0
+    if not valid.any():
+        return None
+    slopes = np.zeros_like(dy)
+    slopes[valid] = dy[valid] / dx[valid]
+    if len(slopes) < 3:
+        return None
+    kernel = np.ones(3) / 3
+    smooth = np.convolve(slopes, kernel, mode="same")
+    max_slope = np.nanmax(smooth)
+    if not np.isfinite(max_slope) or max_slope <= 0:
+        return None
+    threshold = 0.35 * max_slope
+    for idx, val in enumerate(smooth):
+        if val >= threshold:
+            return idx
+    return None
 
 
 def fit_growth_rates(
@@ -316,7 +343,16 @@ def _auto_window_from_long_df(long_df, min_points=5):
             continue
         x = g["time"].to_numpy(dtype=float)
         y = np.log(g["od"].to_numpy(dtype=float))
-        best = _best_window_fit(x, y, min_points=min_points, anchor_start=True)
+        start_idx = _detect_exponential_start(x, y)
+        if start_idx is None:
+            best = _best_window_fit(x, y, min_points=min_points, anchor_start=True)
+        else:
+            xw = x[start_idx:]
+            yw = y[start_idx:]
+            if len(xw) < min_points:
+                best = _best_window_fit(x, y, min_points=min_points, anchor_start=True)
+            else:
+                best = _best_window_fit(xw, yw, min_points=min_points, anchor_start=True)
         if best and not np.isnan(best.get("t_min", np.nan)):
             windows.append((best["t_min"], best["t_max"]))
     if not windows:
