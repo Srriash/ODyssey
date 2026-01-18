@@ -20,7 +20,7 @@ def _build_config(
     fit_window_mode,
     min_points,
     blank_normalized,
-    blank_col,
+    blank_cols,
     auc_mode,
     auc_window,
     auc_unit,
@@ -34,6 +34,7 @@ def _build_config(
     charts_per_row,
     plot_labels,
 ):
+    blank_col = blank_cols[0] if isinstance(blank_cols, list) and blank_cols else blank_cols
     return {
         "version": CONFIG_VERSION,
         "sheet_name": sheet_name,
@@ -43,6 +44,7 @@ def _build_config(
         "fit_window_mode": fit_window_mode,
         "min_points": min_points,
         "blank_normalized": blank_normalized,
+        "blank_cols": blank_cols,
         "blank_col": blank_col,
         "auc_mode": auc_mode,
         "auc_window": auc_window,

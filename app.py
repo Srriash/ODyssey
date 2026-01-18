@@ -424,9 +424,9 @@ def main():
     with col1:
         time_col = st.selectbox("Time column", options=df.columns.tolist(), index=df.columns.get_loc(default_time))
         time_unit = st.selectbox("Time unit", options=["minutes", "hours", "hh:mm:ss"], index=0)
-        blank_normalized_default = config.get("blank_normalized", True) if config else True
+        blank_normalized_default = config.get("blank_normalized", False) if config else False
         blank_normalized = st.checkbox(
-            "OD values already blank-normalized?",
+            "OD values are blank normalized",
             value=blank_normalized_default,
         )
         blank_cols = []
