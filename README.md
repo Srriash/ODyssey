@@ -64,6 +64,7 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 - reportlab
 
 ## Quick Start (Local)
+Run the app locally from the repo root:
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
