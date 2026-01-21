@@ -46,56 +46,114 @@ def _linear_fit(x, y):
     return slope, intercept, r2
 
 
-def _best_window_fit(x, y, min_points=5, min_slope=0.0, anchor_start=False):
-    best = {"score": -np.inf}
+def _median_smooth(y):
+    if len(y) < 3:
+        return y.copy()
+    smoothed = y.copy()
+    for i in range(1, len(y) - 1):
+        smoothed[i] = np.median(y[i - 1 : i + 2])
+    return smoothed
+
+
+def _clamp(min_val, max_val, value):
+    return max(min_val, min(max_val, value))
+
+
+def auto_select_exponential_window(time, od, options=None):
+    opts = options or {}
+    blank_od = opts.get("blank_od")
+    od_min = opts.get("od_min")
+    od_max = opts.get("od_max")
+    min_points_override = opts.get("min_points")
+    r2_override = opts.get("r2_min")
+    loq_k = float(opts.get("loq_k", 2.0))
+
+    time = np.asarray(time, dtype=float)
+    od = np.asarray(od, dtype=float)
+    if blank_od is not None:
+        blank_od = np.asarray(blank_od, dtype=float)
+
+    valid_mask = np.isfinite(time) & np.isfinite(od) & (od > 0)
+    if not valid_mask.any():
+        return {"error": "No valid points after blank normalization."}
+
+    valid_idx = np.where(valid_mask)[0]
+    x = time[valid_mask]
+    od_raw = od[valid_mask]
+
+    def _first_n_positive(vals, n):
+        positive = vals[vals > 0]
+        return positive[:n]
+
+    if blank_od is not None:
+        blank_vals = blank_od[np.isfinite(blank_od)]
+        blank_vals = _first_n_positive(blank_vals, 3)
+    else:
+        blank_vals = _first_n_positive(od_raw, 3)
+
+    if len(blank_vals) < 2:
+        return {"error": "Not enough baseline points to estimate LOQ."}
+
+    blank_mean = float(np.mean(blank_vals))
+    blank_std = float(np.std(blank_vals, ddof=1)) if len(blank_vals) > 1 else 0.0
+    loq_threshold = blank_mean + loq_k * blank_std
+
+    n_min_idx = None
+    for idx, val in enumerate(od_raw):
+        if val >= loq_threshold:
+            n_min_idx = idx
+            break
+    if n_min_idx is None:
+        return {"error": "No points exceed LOQ threshold."}
+
+    odc = od_raw - blank_mean
+    if np.sum(odc > 0) < 3:
+        return {"error": "No positive OD values after blank subtraction."}
+
     n = len(x)
-    start_indices = [0] if anchor_start else range(0, n - min_points + 1)
-    for i in start_indices:
-        for j in range(i + min_points, n + 1):
-            xw = x[i:j]
-            yw = y[i:j]
-            slope, intercept, r2 = _linear_fit(xw, yw)
-            if slope <= min_slope:
-                continue
-            if np.isnan(r2):
-                continue
-            window_fraction = len(xw) / n
-            score = r2 + 0.02 * np.tanh(slope) + 0.01 * window_fraction
-            if score > best["score"]:
-                best = {
-                    "slope": slope,
-                    "intercept": intercept,
-                    "r2": r2,
-                    "score": score,
-                    "n": len(xw),
-                    "t_min": float(xw[0]),
-                    "t_max": float(xw[-1]),
-                }
-    return best
+    min_points = (
+        int(min_points_override)
+        if min_points_override is not None
+        else max(3, int(np.ceil(0.1 * n)))
+    )
+    if (n - n_min_idx) < min_points:
+        return {"error": "Not enough points after LOQ for auto window."}
 
+    r2_min = float(r2_override) if r2_override is not None else 0.99
+    n_end_idx = n - 1
+    while n_end_idx > n_min_idx:
+        if (n_end_idx - n_min_idx + 1) < min_points:
+            break
+        xw = x[n_min_idx : n_end_idx + 1]
+        yw = np.log(odc[n_min_idx : n_end_idx + 1])
+        if od_min is not None and np.any(od_raw[n_min_idx : n_end_idx + 1] < od_min):
+            n_end_idx -= 1
+            continue
+        if od_max is not None and np.any(od_raw[n_min_idx : n_end_idx + 1] > od_max):
+            n_end_idx -= 1
+            continue
+        slope, intercept, r2 = _linear_fit(xw, yw)
+        if slope <= 0 or np.isnan(r2) or r2 < r2_min:
+            n_end_idx -= 1
+            continue
+        if n_end_idx - n_min_idx >= 2:
+            inc_last = od_raw[n_end_idx] - od_raw[n_end_idx - 1]
+            inc_prev = od_raw[n_end_idx - 1] - od_raw[n_end_idx - 2]
+            if not (inc_last > inc_prev and inc_last > 0 and inc_prev > 0):
+                n_end_idx -= 1
+                continue
+        mu = float(slope)
+        doubling_time = np.log(2) / mu if mu > 0 else np.nan
+        return {
+            "startIndex": int(valid_idx[n_min_idx]),
+            "endIndex": int(valid_idx[n_end_idx]),
+            "mu": mu,
+            "r2": float(r2),
+            "doublingTime": float(doubling_time),
+            "diagnostics": {"loq": loq_threshold, "blank_mean": blank_mean, "blank_std": blank_std},
+        }
 
-def _detect_exponential_start(x, y):
-    if len(x) < 4:
-        return None
-    dy = np.diff(y)
-    dx = np.diff(x)
-    valid = dx > 0
-    if not valid.any():
-        return None
-    slopes = np.zeros_like(dy)
-    slopes[valid] = dy[valid] / dx[valid]
-    if len(slopes) < 3:
-        return None
-    kernel = np.ones(3) / 3
-    smooth = np.convolve(slopes, kernel, mode="same")
-    max_slope = np.nanmax(smooth)
-    if not np.isfinite(max_slope) or max_slope <= 0:
-        return None
-    threshold = 0.35 * max_slope
-    for idx, val in enumerate(smooth):
-        if val >= threshold:
-            return idx
-    return None
+    return {"error": "No valid window found after LOQ search."}
 
 
 def fit_growth_rates(
@@ -137,21 +195,23 @@ def fit_growth_rates(
         x = g[time_col].to_numpy(dtype=float)
         y = np.log(g[value_col].to_numpy(dtype=float))
         if auto_window and time_window is None:
-            best = _best_window_fit(x, y, min_points=min_points, min_slope=0.0)
-            if not best:
+            auto = auto_select_exponential_window(x, g[value_col].to_numpy(dtype=float), {"min_points": min_points})
+            if not auto or auto.get("error"):
                 slope = intercept = r2 = np.nan
                 doubling = np.nan
                 n = len(g)
                 t_min = np.nan
                 t_max = np.nan
             else:
-                slope = best["slope"]
-                intercept = best["intercept"]
-                r2 = best["r2"]
+                start_idx = auto["startIndex"]
+                end_idx = auto["endIndex"]
+                xw = x[start_idx : end_idx + 1]
+                yw = y[start_idx : end_idx + 1]
+                slope, intercept, r2 = _linear_fit(xw, yw)
                 doubling = np.log(2) / slope if slope != 0 else np.nan
-                n = best["n"]
-                t_min = best["t_min"]
-                t_max = best["t_max"]
+                n = len(xw)
+                t_min = float(xw[0])
+                t_max = float(xw[-1])
         else:
             slope, intercept, r2 = _linear_fit(x, y)
             doubling = np.log(2) / slope if slope != 0 else np.nan
@@ -342,19 +402,16 @@ def _auto_window_from_long_df(long_df, min_points=5):
         if len(g) < min_points:
             continue
         x = g["time"].to_numpy(dtype=float)
-        y = np.log(g["od"].to_numpy(dtype=float))
-        start_idx = _detect_exponential_start(x, y)
-        if start_idx is None:
-            best = _best_window_fit(x, y, min_points=min_points, anchor_start=True)
-        else:
-            xw = x[start_idx:]
-            yw = y[start_idx:]
-            if len(xw) < min_points:
-                best = _best_window_fit(x, y, min_points=min_points, anchor_start=True)
-            else:
-                best = _best_window_fit(xw, yw, min_points=min_points, anchor_start=True)
-        if best and not np.isnan(best.get("t_min", np.nan)):
-            windows.append((best["t_min"], best["t_max"]))
+        od = g["od"].to_numpy(dtype=float)
+        best = auto_select_exponential_window(
+            x,
+            od,
+            {"min_points": min_points, "score_by": "mu"},
+        )
+        if best and not best.get("error"):
+            start_idx = best["startIndex"]
+            end_idx = best["endIndex"]
+            windows.append((float(x[start_idx]), float(x[end_idx])))
     if not windows:
         return None
     starts = [w[0] for w in windows]

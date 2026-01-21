@@ -98,7 +98,7 @@ def _add_window_highlight_color(fig, time_window, color):
     return fig
 
 
-def _plot_small_multiples(mean_df, treatments, cols_per_row=2, show_sd=True):
+def _plot_small_multiples(mean_df, treatments, cols_per_row=2, show_sd=True, x_label="Time", y_label="OD"):
     rows = int((len(treatments) + cols_per_row - 1) / cols_per_row)
     fig = make_subplots(rows=rows, cols=cols_per_row, subplot_titles=[str(t) for t in treatments])
     color_cycle = pc.qualitative.Plotly
@@ -150,6 +150,8 @@ def _plot_small_multiples(mean_df, treatments, cols_per_row=2, show_sd=True):
             row=r,
             col=c,
         )
+        fig.update_xaxes(title_text=x_label, showgrid=False, row=r, col=c)
+        fig.update_yaxes(title_text=y_label, showgrid=False, row=r, col=c)
     fig.update_layout(height=300 * rows, hovermode="x unified")
     return fig
 
@@ -202,7 +204,7 @@ def _plot_compare_runs(analyses, treatment, show_sd=True):
     return fig
 
 
-def _style_plot(fig, title, x_label, y_label, show_grid=True):
+def _style_plot(fig, title, x_label, y_label, show_grid=False):
     fig.update_layout(
         template="plotly_white",
         paper_bgcolor="white",
@@ -215,7 +217,6 @@ def _style_plot(fig, title, x_label, y_label, show_grid=True):
     )
     fig.update_xaxes(
         showgrid=show_grid,
-        gridcolor="rgba(0,0,0,0.15)",
         zeroline=False,
         showline=True,
         linecolor="black",
@@ -224,7 +225,6 @@ def _style_plot(fig, title, x_label, y_label, show_grid=True):
     )
     fig.update_yaxes(
         showgrid=show_grid,
-        gridcolor="rgba(0,0,0,0.15)",
         zeroline=False,
         showline=True,
         linecolor="black",
@@ -247,7 +247,7 @@ def _prepare_download_figure(fig):
     title = fig_download.layout.title.text if fig_download.layout.title else ""
     x_label = fig_download.layout.xaxis.title.text if fig_download.layout.xaxis.title else ""
     y_label = fig_download.layout.yaxis.title.text if fig_download.layout.yaxis.title else ""
-    _style_plot(fig_download, title, x_label, y_label, show_grid=True)
+    _style_plot(fig_download, title, x_label, y_label, show_grid=False)
     return fig_download
 
 

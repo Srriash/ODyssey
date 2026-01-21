@@ -45,7 +45,9 @@ def _parse_time_series(series):
         pass
 
     try:
-        dt = pd.to_datetime(str_series, errors="raise")
+        dt = pd.to_datetime(str_series, errors="coerce", format="mixed")
+        if dt.isna().all():
+            raise ValueError("No datetime values parsed.")
         base = dt.iloc[0]
         delta = dt - base
         return delta.dt.total_seconds() / 60.0

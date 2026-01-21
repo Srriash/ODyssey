@@ -1,10 +1,9 @@
-﻿import json
+import json
 import io
 import os
 import re
 import zipfile
 from datetime import datetime, timezone
-
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -16,13 +15,9 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-
 APP_TITLE = "ODyssey Growth Curve Workbench"
 CONFIG_VERSION = 1
-
-
 from odyssey.analysis import (
-    _auto_window_from_long_df,
     _base_time_unit,
     _build_column_map,
     _compute_auc,
@@ -60,8 +55,6 @@ from odyssey.plotting import (
     _style_plot,
     _to_rgba,
 )
-
-
 def _analyze_file(
     uploaded,
     sheet_name,
@@ -112,8 +105,6 @@ def _analyze_file(
         "mean_df": mean_df,
         "auc": auc_df,
     }
-
-
 def _apply_blank_normalization(df, time_col, blank_col):
     working_df = df.copy()
     data_cols = [c for c in working_df.columns if c != time_col]
@@ -154,12 +145,10 @@ def main():
         """,
         unsafe_allow_html=True,
     )
-
     st.markdown(
         "Learn more: [Project overview](README.md)  \n"
         "Add Excel file. JSON config file is optional."
     )
-
     st.subheader("Compare runs")
     st.caption("Compare previously analyzed runs by uploading ODyssey zip exports.")
     st.info("Comparison does not require re-running analysis.")
@@ -255,7 +244,7 @@ def main():
                                     )
                                 )
                             fig.update_layout(barmode="group")
-                            _style_plot(fig, f"{metric} by run", "Run", metric, show_grid=True)
+                            _style_plot(fig, f"{metric} by run", "Run", metric, show_grid=False)
                             st.plotly_chart(fig, width="stretch", key="compare_metric_plot")
                 else:
                     st.info("No numeric columns available for summary.")
@@ -367,7 +356,7 @@ def main():
                                     line=dict(color=color, **run_styles[run]),
                                 )
                             )
-                    _style_plot(fig, "Growth curves across runs", "Time", "OD", show_grid=True)
+                    _style_plot(fig, "Growth curves across runs", "Time", "OD", show_grid=False)
                     _apply_tick_intervals(fig, x_tick_interval_compare, y_tick_interval_compare)
                     st.plotly_chart(fig, width="stretch", key="compare_growth_curves")
                     html = pio.to_html(fig, full_html=False, include_plotlyjs="cdn")
@@ -379,46 +368,38 @@ def main():
                         key="download_compare_growth_curves",
                     )
     st.divider()
-
     st.subheader("Run analysis")
     st.caption("Analyze a single Excel file and generate plots, reports, and exports.")
     excel_upload = st.file_uploader("Upload Excel file", type=["xlsx", "xls"], accept_multiple_files=False)
     if not excel_upload:
         st.info("Upload an Excel file to continue analysis.")
         return
-
     st.caption(
         "Optional config: upload a saved config to restore your sheet, columns, plots, and labels."
     )
     config_upload = st.file_uploader("Upload config (optional)", type=["json"])
     config = _safe_read_json(config_upload) if config_upload else None
-
     try:
         xls = pd.ExcelFile(excel_upload)
     except Exception as exc:
         st.error(f"Could not read Excel file: {exc}")
         return
-
     sheet_names = xls.sheet_names
     default_sheet = config.get("sheet_name") if config else sheet_names[0]
     if default_sheet not in sheet_names:
         default_sheet = sheet_names[0]
-
     sheet_name = st.selectbox("Sheet", options=sheet_names, index=sheet_names.index(default_sheet))
     try:
         df = pd.read_excel(xls, sheet_name=sheet_name, mangle_dupe_cols=False)
     except TypeError:
         df = pd.read_excel(xls, sheet_name=sheet_name)
-
     if df.empty:
         st.warning("The selected sheet is empty.")
         return
-
     time_candidates = _guess_time_columns(df)
     default_time = config.get("time_col") if config else time_candidates[0]
     if default_time not in df.columns:
         default_time = time_candidates[0]
-
     st.subheader("Preview")
     col1, col2 = st.columns([2, 3])
     with col1:
@@ -429,36 +410,40 @@ def main():
             "OD values are blank normalized",
             value=blank_normalized_default,
         )
+        blank_candidates = [c for c in df.columns if c != time_col]
         blank_cols = []
         working_df = df.copy()
-        if not blank_normalized:
-            blank_candidates = [c for c in df.columns if c != time_col]
-            if blank_candidates:
-                default_blank_cols = []
-                if config:
-                    default_blank_cols = config.get("blank_cols") or []
-                    if not default_blank_cols and config.get("blank_col"):
-                        default_blank_cols = [config.get("blank_col")]
-                default_blank_cols = [c for c in default_blank_cols if c in blank_candidates]
-                blank_cols = st.multiselect(
-                    "Blank column(s)",
-                    options=blank_candidates,
-                    default=default_blank_cols,
-                )
-                if blank_cols:
-                    working_df = _apply_blank_normalization(df, time_col, blank_cols)
-                else:
-                    st.warning("Select at least one blank column for normalization.")
-            else:
+        if blank_candidates:
+            default_blank_cols = []
+            if config:
+                default_blank_cols = config.get("blank_cols") or []
+                if not default_blank_cols and config.get("blank_col"):
+                    default_blank_cols = [config.get("blank_col")]
+            default_blank_cols = [c for c in default_blank_cols if c in blank_candidates]
+            blank_cols = st.multiselect(
+                "Blank column(s)",
+                options=blank_candidates,
+                default=default_blank_cols,
+            )
+            if not blank_normalized and blank_cols:
+                working_df = _apply_blank_normalization(df, time_col, blank_cols)
+            elif not blank_normalized and not blank_cols:
+                st.warning("Select at least one blank column for normalization.")
+        else:
+            if not blank_normalized:
                 st.warning("No columns available for blank normalization.")
-                blank_normalized = True
+            blank_normalized = True
         base_unit = _base_time_unit(time_unit)
         fit_window_mode = "Auto+Manual"
         min_points = int(config.get("min_points", 5)) if config else 5
         time_window = None
-
-    st.dataframe(working_df.head(10))
-
+    preview_df = working_df.copy()
+    for col in preview_df.columns:
+        if preview_df[col].dtype == object:
+            sample = preview_df[col].dropna().head(5)
+            if any(isinstance(v, (datetime, pd.Timestamp)) for v in sample):
+                preview_df[col] = preview_df[col].astype(str)
+    st.dataframe(preview_df.head(10))
     validation_issues = _validate_data(
         working_df,
         time_col=time_col,
@@ -468,7 +453,6 @@ def main():
         st.warning("Data validation warnings:")
         for issue in validation_issues[:10]:
             st.write(f"- {issue}")
-
     with col2:
         config_map = config.get("column_map") if config else None
         available_cols = [
@@ -476,7 +460,6 @@ def main():
             for c in working_df.columns
             if c != time_col and c not in set(blank_cols)
         ]
-
         if "replicate_groups" not in st.session_state:
             st.session_state.replicate_groups = []
         if "plot_groups" not in st.session_state:
@@ -513,20 +496,16 @@ def main():
             st.session_state.analysis_ready = False
         if "analysis_payload" not in st.session_state:
             st.session_state.analysis_payload = {}
-
         st.markdown("Select columns that are replicates, assign a treatment name, and add the group.")
         if "rep_cols" not in st.session_state:
             st.session_state.rep_cols = []
         if "rep_name" not in st.session_state:
             st.session_state.rep_name = ""
-
         def _update_group_name():
             st.session_state.rep_name = _suggest_treatment_name(st.session_state.rep_cols)
-
         used_cols = set()
         for group in st.session_state.replicate_groups:
             used_cols.update(group.get("columns", []))
-
         available_group_cols = [c for c in available_cols if c not in used_cols]
         group_cols = st.multiselect(
             "Replicate columns",
@@ -545,15 +524,12 @@ def main():
                 )
                 st.session_state.rep_cols = []
                 st.session_state.rep_name = ""
-
         st.button("Add replicate group", on_click=_add_group)
-
         if st.session_state.replicate_groups:
             st.write("Replicate groups")
             st.dataframe(pd.DataFrame(st.session_state.replicate_groups))
             if st.button("Clear replicate groups"):
                 st.session_state.replicate_groups = []
-
         if config_map and not st.session_state.replicate_groups:
             st.session_state.replicate_groups = [
                 {"treatment": row.get("treatment"), "columns": [row.get("column")]}
@@ -562,19 +538,48 @@ def main():
             ]
         if config and config.get("plot_groups") and not st.session_state.plot_groups:
             st.session_state.plot_groups = config.get("plot_groups")
-
         notes = st.text_area("Notes (saved into config)", value=(config.get("notes", "") if config else ""))
-
+    if blank_cols:
+        st.subheader("Blank control")
+        st.caption("Check for contamination by reviewing blank OD over time.")
+        try:
+            blank_time = _parse_time_series(df[time_col])
+            blank_time = _apply_time_unit(
+                blank_time, time_unit if time_unit != "hh:mm:ss" else "minutes"
+            )
+            fig = go.Figure()
+            for col in blank_cols:
+                fig.add_trace(
+                    go.Scatter(
+                        x=blank_time,
+                        y=pd.to_numeric(df[col], errors="coerce"),
+                        mode="lines",
+                        name=str(col),
+                    )
+                )
+            _style_plot(fig, "Blank OD over time", st.session_state.plot_x_label, "OD", show_grid=False)
+            if available_cols:
+                y_vals = working_df[available_cols].apply(pd.to_numeric, errors="coerce")
+                y_min = float(np.nanmin(y_vals.to_numpy())) if not y_vals.empty else None
+                y_max = float(np.nanmax(y_vals.to_numpy())) if not y_vals.empty else None
+                if y_min is not None and y_max is not None and np.isfinite(y_min) and np.isfinite(y_max):
+                    fig.update_yaxes(range=[y_min, y_max])
+            st.plotly_chart(fig, width="stretch", key="blank_control_plot")
+        except Exception as exc:
+            st.warning(f"Blank control preview unavailable: {exc}")
     st.subheader("Analysis settings")
     st.markdown("### Growth rate")
     default_growth_unit = (config.get("growth_rate_unit") if config else None) or (
         "1/min" if base_unit == "minutes" else "1/hour"
     )
-    growth_rate_unit = st.selectbox(
+    growth_rate_unit_options = {"min\u207B\u00B9": "1/min", "h\u207B\u00B9": "1/hour"}
+    default_growth_label = "min\u207B\u00B9" if default_growth_unit == "1/min" else "h\u207B\u00B9"
+    growth_rate_label = st.selectbox(
         "Growth rate unit",
-        options=["1/min", "1/hour"],
-        index=0 if default_growth_unit == "1/min" else 1,
+        options=list(growth_rate_unit_options.keys()),
+        index=0 if default_growth_label == "min\u207B\u00B9" else 1,
     )
+    growth_rate_unit = growth_rate_unit_options[growth_rate_label]
     st.markdown("### Doubling time")
     default_dt_unit = (config.get("doubling_time_unit") if config else None) or (
         "min" if base_unit == "minutes" else "hour"
@@ -584,9 +589,7 @@ def main():
         options=["min", "hour"],
         index=0 if default_dt_unit == "min" else 1,
     )
-
     st.subheader("Preview curves")
-    st.caption("Exponential window used for growth rate and doubling time.")
     time_window = None
     t_min = 0.0
     t_max = 1.0
@@ -613,22 +616,37 @@ def main():
                     st.session_state.preview_base_fig = _plot_overlay(
                         preview_mean_df, preview_treatments, show_sd=True
                     )
-
-                auto_window_range = None
-                if st.session_state.analysis_ready:
-                    try:
-                        auto_results = st.session_state.analysis_payload["analyses"][0]["results"]
-                        ws = pd.to_numeric(auto_results["window_start"], errors="coerce").dropna()
-                        we = pd.to_numeric(auto_results["window_end"], errors="coerce").dropna()
-                        if not ws.empty and not we.empty:
-                            auto_window_range = (float(ws.median()), float(we.median()))
-                    except Exception:
-                        auto_window_range = None
-                if auto_window_range is None:
-                    auto_window_range = _auto_window_from_long_df(preview_long_df, min_points=min_points)
-                if auto_window_range is None:
+                auto_window_range = (t_min, t_max)
+                try:
+                    mean_by_time = (
+                        preview_mean_df.groupby("time")["mean"]
+                        .mean()
+                        .reset_index()
+                        .sort_values("time")
+                    )
+                    time_vals = mean_by_time["time"].to_numpy(dtype=float)
+                    od_vals = mean_by_time["mean"].to_numpy(dtype=float)
+                    valid = np.isfinite(time_vals) & np.isfinite(od_vals) & (od_vals > 0)
+                    time_vals = time_vals[valid]
+                    od_vals = od_vals[valid]
+                    if len(time_vals) > 3:
+                        log_od = np.log(od_vals)
+                        slopes = np.diff(log_od) / np.diff(time_vals)
+                        if np.isfinite(slopes).any():
+                            max_slope = np.nanmax(slopes)
+                            thresh = 0.8 * max_slope
+                            start_idx = 0
+                            for idx, val in enumerate(slopes):
+                                if val >= thresh:
+                                    start_idx = idx
+                                    break
+                            start_time = float(time_vals[start_idx])
+                            span = float(t_max - t_min)
+                            end_time = min(t_max, start_time + 0.2 * span)
+                            auto_window_range = (start_time, end_time)
+                except Exception:
                     auto_window_range = (t_min, t_max)
-
+                st.caption("Adjust the fit window as needed.")
                 time_window = st.slider(
                     "Fit window range",
                     min_value=t_min,
@@ -636,7 +654,6 @@ def main():
                     value=auto_window_range,
                     key="fit_window_range",
                 )
-
                 preview_fig = go.Figure(st.session_state.preview_base_fig)
                 preview_fig = _add_window_highlight(preview_fig, time_window)
                 _style_plot(
@@ -644,30 +661,28 @@ def main():
                     st.session_state.plot_title,
                     st.session_state.plot_x_label,
                     st.session_state.plot_y_label,
-                    show_grid=True,
+                    show_grid=False,
                 )
                 st.plotly_chart(preview_fig, width="stretch", key="preview_plot")
                 st.caption(f"Highlighted window: {time_window[0]:.2f} to {time_window[1]:.2f}.")
-
-                live_r2 = st.checkbox("Calculate R2 live (can be slow)", value=False)
+                live_r2 = st.checkbox("Calculate R\u00B2 live (can be slow)", value=False)
                 if live_r2:
                     r2_df = _window_r2_by_treatment(preview_long_df, time_window=time_window)
                     if not r2_df.empty:
                         r2_median = r2_df["r2"].median()
-                        st.caption(f"Median R2 in highlighted window: {r2_median:.3f}")
+                        st.caption(f"Median R\u00B2 in highlighted window: {r2_median:.3f}")
                 else:
-                    if st.button("Calculate R2 for highlighted window"):
+                    if st.button("Calculate R\u00B2 for highlighted window"):
                         r2_df = _window_r2_by_treatment(preview_long_df, time_window=time_window)
                         if not r2_df.empty:
                             r2_median = r2_df["r2"].median()
                             st.session_state.preview_r2_median = r2_median
                     if "preview_r2_median" in st.session_state:
                         st.caption(
-                            f"Median R2 in highlighted window: {st.session_state.preview_r2_median:.3f}"
+                            f"Median R\u00B2 in highlighted window: {st.session_state.preview_r2_median:.3f}"
                         )
     except Exception as exc:
         st.warning(f"Preview unavailable: {exc}")
-
     st.markdown("### AUC")
     config_auc_unit = config.get("auc_unit") if config else None
     if config_auc_unit == "OD*min":
@@ -731,26 +746,22 @@ def main():
             auc_highlight = (t_min, t_max)
         if auc_fig is not None:
             auc_fig = _add_window_highlight_color(auc_fig, auc_highlight, "rgba(255,193,7,0.2)")
-
     if auc_fig is not None and auc_highlight is not None:
         _style_plot(
             auc_fig,
             "AUC window preview",
             st.session_state.plot_x_label,
             st.session_state.plot_y_label,
-            show_grid=True,
+            show_grid=False,
         )
         st.plotly_chart(auc_fig, width="stretch", key="auc_preview_plot")
-
     col_a, _ = st.columns([1, 1])
     with col_a:
         run_button = st.button("Run analysis", type="primary")
-
     if run_button:
         if not available_cols:
             st.error("No treatment columns selected.")
             return
-
         column_map = _build_column_map(available_cols, st.session_state.replicate_groups)
         base_unit = _base_time_unit(time_unit)
         target_mu_unit = "minutes" if growth_rate_unit == "1/min" else "hours"
@@ -766,7 +777,18 @@ def main():
                     auc_use_window = time_window
                 else:
                     auc_use_window = auc_window
-
+                if auc_use_window is None:
+                    auc_time = _parse_time_series(df[time_col])
+                    auc_time = _apply_time_unit(
+                        auc_time, time_unit if time_unit != "hh:mm:ss" else "minutes"
+                    )
+                    auc_time = auc_time.dropna()
+                    if not auc_time.empty:
+                        auc_window_range = (float(auc_time.min()), float(auc_time.max()))
+                    else:
+                        auc_window_range = (np.nan, np.nan)
+                else:
+                    auc_window_range = (float(auc_use_window[0]), float(auc_use_window[1]))
                 analysis = _analyze_file(
                     uploaded,
                     sheet_name,
@@ -784,14 +806,12 @@ def main():
                 analyses.append(analysis)
             except Exception as exc:
                 errors.append(str(exc))
-
             if errors:
                 st.error("Some files could not be processed:")
                 for err in errors:
                     st.write(f"- {err}")
                 if not analyses:
                     return
-
             combined_results = pd.concat([a["results"] for a in analyses], ignore_index=True)
             combined_auc = pd.concat([a["auc"] for a in analyses], ignore_index=True)
             combined_results = combined_results.merge(
@@ -804,41 +824,52 @@ def main():
             )
             target_auc_unit = "minutes" if auc_unit == "OD*min" else "hours"
             results_display["auc"] = _convert_auc(results_display["auc"], base_unit, target_auc_unit)
-            mu_label = f"mu ({growth_rate_unit})"
-            dt_label = f"doubling_time ({doubling_time_unit})"
-            auc_label = f"auc ({auc_unit})"
+            mu_label = f"Growth rate ({growth_rate_label})"
+            dt_label = f"Doubling time ({doubling_time_unit})"
+            auc_label = f"AUC ({auc_unit})"
             results_display = results_display.rename(
                 columns={"mu": mu_label, "doubling_time": dt_label, "auc": auc_label}
             )
+            results_display["AUC window start"] = auc_window_range[0]
+            results_display["AUC window end"] = auc_window_range[1]
             results_display = _qc_flags(results_display, r2_threshold=0.9)
             if "run" in results_display.columns:
                 results_display = results_display.drop(columns=["run"])
-
+            results_display = results_display.rename(
+                columns={
+                    "treatment": "Treatment",
+                    "replicate": "Replicate",
+                    "n": "N",
+                    "intercept": "Intercept",
+                    "r2": "R\u00B2",
+                    "window_start": "Exponential window start",
+                    "window_end": "Exponential window end",
+                    "qc_flags": "QC flags",
+                }
+            )
             st.session_state.analysis_ready = True
             st.session_state.analysis_payload = {
                 "analyses": analyses,
                 "results": results_display,
             }
-
     if not st.session_state.analysis_ready:
         st.info("Run analysis to generate results and plots.")
         return
-
     analyses = st.session_state.analysis_payload["analyses"]
     results = st.session_state.analysis_payload["results"]
-
     st.subheader("Fit results")
     st.dataframe(results)
     st.markdown(
-        "Fit definitions: **n** = number of points in the fit window; "
-        "**mu** = growth rate from slope of ln(OD) vs time; "
-        "**r2** = coefficient of determination for the linear fit; "
-        "**doubling_time** = time for OD to double; "
-        "**auc** = area under the curve; "
-        "**window_start/window_end** = time range used for the fit; "
-        "**qc_flags** = low R2 or non-positive growth rate."
+        "Fit definitions: "
+        "**N** = number of points in the fit window; "
+        "**Growth rate** = growth rate from the selected fit window (slope of ln(OD) vs time); "
+        "**R<sup>2</sup>** = coefficient of determination for the linear fit; "
+        "**Doubling time** = time for OD to double; "
+        "**AUC** = area under the curve; "
+        "**Exponential window start/end** = time range used for the fit; "
+        "**QC flags** = low R<sup>2</sup> or non-positive growth rate.",
+        unsafe_allow_html=True,
     )
-
     st.subheader("Growth curves")
     treatments = sorted(
         pd.concat([a["mean_df"]["treatment"] for a in analyses]).dropna().unique().tolist()
@@ -860,7 +891,6 @@ def main():
             st.session_state.plot_group_x_label = ""
         if "plot_group_y_label" not in st.session_state:
             st.session_state.plot_group_y_label = ""
-
         st.markdown("Create one or more plot groups for overlay comparison.")
         default_x_label = f"Time ({_base_time_unit(time_unit)})"
         default_y_label = "OD"
@@ -880,7 +910,6 @@ def main():
             st.text_input("Group plot title", key="plot_group_title")
             st.text_input("Group x-axis label", key="plot_group_x_label")
             st.text_input("Group y-axis label", key="plot_group_y_label")
-
         def _add_plot_group():
             if st.session_state.plot_group_treatments:
                 st.session_state.plot_groups.append(
@@ -899,14 +928,12 @@ def main():
                 st.session_state.plot_group_title = ""
                 st.session_state.plot_group_x_label = ""
                 st.session_state.plot_group_y_label = ""
-
         st.button("Add plot group", on_click=_add_plot_group)
         if st.session_state.plot_groups:
             st.write("Plot groups")
             st.dataframe(pd.DataFrame(st.session_state.plot_groups))
             if st.button("Clear plot groups"):
                 st.session_state.plot_groups = []
-
         plot_mode_options = ["Overlay (compare treatments)", "Small multiples", "No plots"]
         if len(analyses) > 1:
             plot_mode_options.insert(2, "Compare runs (same treatment)")
@@ -953,7 +980,6 @@ def main():
                 if st.session_state.compare_treatment in treatments
                 else 0,
             )
-
         plot_groups = st.session_state.plot_groups or [{"label": "All treatments", "treatments": treatments}]
         plot_artifacts = []
         if plot_mode != "No plots":
@@ -979,13 +1005,17 @@ def main():
                 elif plot_mode == "Small multiples":
                     mean_df = analyses[0]["mean_df"]
                     fig = _plot_small_multiples(
-                        mean_df, selected, cols_per_row=int(plots_per_row), show_sd=show_sd
+                        mean_df,
+                        selected,
+                        cols_per_row=int(plots_per_row),
+                        show_sd=show_sd,
+                        x_label=x_label,
+                        y_label=y_label,
                     )
                 else:
                     treatment_choice = st.session_state.compare_treatment or selected[0]
                     fig = _plot_compare_runs(analyses, treatment_choice, show_sd=show_sd)
-
-                _style_plot(fig, title, x_label, y_label, show_grid=True)
+                _style_plot(fig, title, x_label, y_label, show_grid=False)
                 _apply_tick_intervals(fig, x_tick_interval, y_tick_interval)
                 st.plotly_chart(fig, width="stretch", key=f"plot_group_{idx}")
                 download_fig = _prepare_download_figure(fig)
@@ -999,7 +1029,6 @@ def main():
                     key=f"download_plot_{idx}",
                 )
                 plot_artifacts.append((label, download_fig))
-
     st.subheader("Downloads")
     st.caption("Select what you want and download as a single zip.")
     download_results = st.checkbox("Results CSV", value=True)
@@ -1008,7 +1037,6 @@ def main():
     download_report = st.checkbox("PDF report", value=True)
     download_plots = st.checkbox("Plots (HTML)", value=True)
     download_plots_png = st.checkbox("Plots (PNG)", value=False)
-
     plot_labels = [label for label, _ in plot_artifacts]
     selected_plots = plot_labels
     if download_plots or download_plots_png:
@@ -1019,14 +1047,12 @@ def main():
                 options=plot_labels,
                 default=[],
             )
-
     config_filename = st.text_input("Config filename", value="odyssey_config.json")
     if not config_filename.strip():
         config_filename = "odyssey_config.json"
     zip_filename = st.text_input("Zip filename", value="odyssey_downloads.zip")
     if not zip_filename.strip():
         zip_filename = "odyssey_downloads.zip"
-
     column_map = _build_column_map(available_cols, st.session_state.replicate_groups)
     config_payload = _build_config(
         sheet_name,
@@ -1091,16 +1117,11 @@ def main():
             file_name=zip_filename,
             mime="application/zip",
         )
-
     if time_unit == "hh:mm:ss":
         st.caption("Time is fit in minutes; results display uses the selected unit.")
-
     if st.button("Run another analysis"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
-
-
 if __name__ == "__main__":
     main()
-
