@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ODyssey - How It's Built</title>
+    <meta name="description" content="The ODyssey growth-curve workbench architecture, stack, and pipeline." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav">
+        <a class="brand" href="index.html">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 120 48" role="img" aria-label="OD monogram">
+              <defs>
+                <linearGradient id="od-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#0E6BA8" />
+                  <stop offset="100%" stop-color="#25A18E" />
+                </linearGradient>
+              </defs>
+              <circle cx="24" cy="24" r="18" fill="none" stroke="url(#od-grad)" stroke-width="4" />
+              <path d="M56 8h10c10.5 0 19 8.5 19 19s-8.5 19-19 19H56V8z" fill="none" stroke="url(#od-grad)" stroke-width="4" />
+              <path d="M60 34c6-4 12-8 18-18" fill="none" stroke="#0E6BA8" stroke-width="3" stroke-linecap="round" />
+              <circle cx="84" cy="16" r="3" fill="#25A18E" />
+            </svg>
+          </span>
+          <span class="brand-text">ODyssey</span>
+        </a>
+        <div class="nav-actions">
+          <a class="nav-link" href="index.html">Home</a>
+          <a class="nav-link" href="index.html#features">Features</a>
+          <a class="nav-link" href="how-it-works.html">How It Works</a>
+          <a class="nav-link" href="example.html">Example Run</a>
+          <a class="nav-link" href="built.html">How It's Built</a>
+          <a class="button ghost" href="https://odyssey-workbench.streamlit.app/">Launch App</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="how-it-works">
+        <div class="section-head">
+          <p class="eyebrow">How It's Built</p>
+          <h2>A practical stack tuned for fast iteration and reproducible analysis.</h2>
+          <p class="section-subhead">
+            ODyssey combines a Python analysis core with a Streamlit UI. The pipeline focuses on
+            clean inputs, transparent fits, and exportable artifacts that can be shared or re-used.
+            Explore the full codebase on GitHub:
+            <a href="https://github.com/Srriash/ODyssey">github.com/Srriash/ODyssey</a>.
+          </p>
+        </div>
+
+        <div class="subsection">
+          <h3>Core stack</h3>
+          <div class="steps">
+            <article class="step">
+              <span class="step-number">UI</span>
+              <h3>Streamlit + Plotly</h3>
+              <p>Interactive controls, preview plots, and downloads in a single app surface.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">Analysis</span>
+              <h3>Pandas + NumPy</h3>
+              <p>Long-format reshaping, grouping, and numeric fits for growth metrics.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">Export</span>
+              <h3>ReportLab + Zip</h3>
+              <p>Builds PDF summaries and bundles configs, plots, and results.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">Runtime</span>
+              <h3>Streamlit Cloud</h3>
+              <p>Hosted deployment for quick access, with local runs supported for heavy data.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3>Analysis pipeline</h3>
+          <div class="steps">
+            <article class="step">
+              <span class="step-number">01</span>
+              <h3>Ingest + normalize</h3>
+              <p>Parse Excel sheets, align time, and optionally subtract blank wells.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">02</span>
+              <h3>Reshape + group</h3>
+              <p>Convert to long format and aggregate replicates by treatment.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">03</span>
+              <h3>Fit growth windows</h3>
+              <p>Run linear fits on log(OD) vs time and compute growth metrics.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">04</span>
+              <h3>QA + summaries</h3>
+              <p>Flag low R<sup>2</sup> fits and generate comparison-ready tables.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">05</span>
+              <h3>Plots + exports</h3>
+              <p>Render growth curves, then export plots, tables, and reports in one bundle.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3>App structure</h3>
+          <div class="control-grid">
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Entry point</h3>
+                <p>The Streamlit app is coordinated from a single entry file that wires UI state to the analysis core.</p>
+                <ul>
+                  <li>UI controls and session state live in the app layer</li>
+                  <li>Analysis logic stays in reusable helper modules</li>
+                  <li>Exports are built after analysis finishes</li>
+                </ul>
+              </div>
+            </div>
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Analysis module</h3>
+                <p>Core functions handle data validation, fitting, and quality control for growth metrics.</p>
+                <ul>
+                  <li>Windowed linear fits for growth rate</li>
+                  <li>Doubling time derived from fitted slopes</li>
+                  <li>QC flags for low R<sup>2</sup> or negative growth</li>
+                </ul>
+              </div>
+            </div>
+            <div class="control-card">
+              <div class="control-details">
+                <h3>IO + caching</h3>
+                <p>Dedicated utilities parse Excel files, handle configs, and keep previews responsive.</p>
+                <ul>
+                  <li>Excel parsing with sheet and time detection</li>
+                  <li>Config JSON persistence for repeatability</li>
+                  <li>Cached previews for quick UI updates</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3>Data model</h3>
+          <div class="control-grid">
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Long-format tables</h3>
+                <p>Raw columns are reshaped into time, treatment, replicate, and OD for consistent analysis.</p>
+                <ul>
+                  <li>Easy grouping by treatment and replicate</li>
+                  <li>Consistent inputs for plotting and statistics</li>
+                  <li>Reusable across comparison workflows</li>
+                </ul>
+              </div>
+            </div>
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Derived metrics</h3>
+                <p>Growth rate, doubling time, and AUC are computed from the selected windows and units.</p>
+                <ul>
+                  <li>Units converted to minutes or hours</li>
+                  <li>AUC over full range or custom window</li>
+                  <li>Metadata for fit window bounds</li>
+                </ul>
+              </div>
+            </div>
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Config payloads</h3>
+                <p>Configs store everything needed to rerun a file with the same settings.</p>
+                <ul>
+                  <li>Sheet, time, and blank settings</li>
+                  <li>Treatment mapping and labels</li>
+                  <li>Plot layout and export options</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3>Exports + reuse</h3>
+          <div class="control-grid">
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Config-first workflow</h3>
+                <p>JSON configs capture mappings, windows, labels, and plot preferences.</p>
+                <ul>
+                  <li>Reusable run settings</li>
+                  <li>Stable treatment labels</li>
+                  <li>Consistent plot styling</li>
+                </ul>
+              </div>
+            </div>
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Shareable artifacts</h3>
+                <p>Results CSVs, interactive plots, and optional PDF reports for sharing.</p>
+                <ul>
+                  <li>Results tables</li>
+                  <li>HTML or PNG plots</li>
+                  <li>Report PDF summary</li>
+                </ul>
+              </div>
+            </div>
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Comparison-ready zips</h3>
+                <p>Bundles long-format data so multi-run comparisons are one upload away.</p>
+                <ul>
+                  <li>long_df.csv</li>
+                  <li>Results + config</li>
+                  <li>Plot artifacts</li>
+                </ul>
+              </div>
+            </div>
+            <div class="control-card">
+              <div class="control-details">
+                <h3>Reports</h3>
+                <p>PDF reports summarize fit results and include a representative plot for quick sharing.</p>
+                <ul>
+                  <li>Summary table of metrics</li>
+                  <li>Optional plot snapshot</li>
+                  <li>Notes section for context</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

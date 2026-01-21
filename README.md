@@ -1,73 +1,70 @@
 # ODyssey
 
-## Research Proposal
+## Updated Project Proposal
 
 ### Project Summary
-ODyssey - Growth Curve Workbench is a local, student-friendly web app that lets lab users load growth curve datasets, analyze growth kinetics, and re-run analyses without repeatedly re-entering settings. The core innovation is a reusable config file that stores parsing rules and analysis options so users can drop in a new Excel file and go straight to results.
+ODyssey - Growth Curve Workbench is a web app for analyzing plate reader growth curves. It turns
+raw Excel files into reusable analyses with clear fit windows, QC flags, and exportable plots. A
+config-first workflow lets users rerun the same analysis on new files without re-entering settings.
+
+Website: https://odyssey-workbench.streamlit.app/
 
 ### Problem Statement
-Current growth curve workflows are fragmented: users must repeatedly specify file paths, sheet names, replicate mappings, and analysis windows. This leads to friction, inconsistent analysis, and poor reproducibility across runs and users. A lightweight, local system tailored to growth curves can reduce overhead while preserving flexibility.
+Growth curve workflows often require repeated setup: selecting sheets, time columns, replicate
+mappings, and fit windows for every run. This slows iteration, creates inconsistency, and makes
+comparisons across runs harder to trust.
 
 ### Objectives
-- Build a reusable project format that stores dataset paths, parsing rules, and analysis settings.
-- Provide interactive selection of datasets and grouping for visualization.
-- Compute growth rates and doubling times with manual or auto-detected time windows.
-- Compare new runs against saved runs for the same project.
-- Flag questionable fits (e.g., low R2, negative slopes) to prompt review.
+- Provide a guided UI for uploading Excel files and mapping treatments/replicates.
+- Fit growth rates and doubling times from exponential windows with QC flags.
+- Compute AUC using full range, fit window, or a custom range.
+- Compare runs using exported results without re-running analysis.
+- Export results, plots, and reports in a single bundle.
+- Persist analysis settings with reusable JSON configs.
 
 ### Proposed Solution
-The tool will be delivered as a local web app (Streamlit) with a streamlined UI and a reusable JSON config file. Users can:
-- Upload Excel data and confirm auto-detected sheet/time/columns.
-- Save a config file that captures selections and analysis settings.
-- Reuse the config to skip setup on future runs.
-- Run analysis and download results as CSV.
+Deliver a Streamlit app that integrates data ingestion, analysis, visualization, and exports:
+- Upload Excel data and optionally load a saved config.
+- Preview curves and set the fit window (auto or manual).
+- Run analysis and generate plots and tables.
+- Export results, plots, and a PDF report as a zip.
+- Reuse configs to repeat the same analysis on new runs.
 
 ### Methods
-1. Data ingestion via `pandas.read_excel`.
-2. Parsing of well labels into strain, condition, replicate.
-3. Reshaping into long format and replicate aggregation.
-4. Growth rate estimation by fitting log(OD) vs time.
-5. Doubling time calculation as `ln(2) / mu`.
-6. Results stored per project for comparison across runs.
+1. Read Excel files and parse time columns into numeric units.
+2. Apply optional blank normalization using selected blank columns.
+3. Convert wide data to long format by treatment and replicate.
+4. Fit log(OD) vs time within selected windows to estimate growth rate.
+5. Compute doubling time and AUC with unit conversions.
+6. Generate plots and QC flags for low R^2 or non-positive growth rates.
+7. Export results, plots, and configs for reuse and comparison.
 
 ### Expected Outcomes
-- Reproducible, low-friction growth curve analysis.
-- Faster turnaround for repeated experiments.
-- Standardized reporting with consistent plots and tables.
+- Faster, repeatable growth-curve analysis.
+- Consistent outputs across users and runs.
+- Comparison-ready exports and shareable reports.
 
 ### Scope and Deliverables
-- A project file format (`.growthproj`) and local storage.
-- A notebook UI that supports data selection and grouping.
-- Growth-rate and doubling-time outputs with fit diagnostics.
-- Comparison view between historical and new runs.
+- Streamlit analysis app with reusable configs.
+- Overlay, small-multiple, and comparison plots.
+- CSV results, long-format data, HTML/PNG plots, and PDF reports.
+- Zip exports suitable for cross-run comparisons.
 
 ### Risks and Mitigations
-- **Risk:** heterogeneous labeling in Excel files.
-  **Mitigation:** user-configurable parsing rules and previews.
-- **Risk:** overfitting on noisy data.
-  **Mitigation:** R2 thresholds and manual override.
+- Risk: heterogeneity in Excel layouts.
+  Mitigation: flexible mapping UI with previews and saved configs.
+- Risk: noisy data leading to poor fits.
+  Mitigation: QC flags and manual window adjustments.
 
 ### Tech Stack
 - Python 3.9+
 - pandas, numpy
-- openpyxl
+- plotly
 - streamlit
+- reportlab
 
-
-## Quick Start (Local Web App)
-
-1. Create a virtual environment and install dependencies:
-
+## Quick Start (Local)
 ```bash
 pip install -r requirements.txt
-```
-
-2. Start the app:
-
-```bash
 streamlit run app.py
 ```
-
-3. Upload an Excel file, optionally upload a saved config, and run the analysis.
-
-Use "Generate config" to download a config file for future runs.

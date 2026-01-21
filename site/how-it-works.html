@@ -38,7 +38,7 @@
           <a class="nav-link" href="index.html#features">Features</a>
           <a class="nav-link" href="how-it-works.html">How It Works</a>
           <a class="nav-link" href="example.html">Example Run</a>
-          <a class="nav-link" href="built.html">How Itâ€™s Built</a>
+          <a class="nav-link" href="built.html">How It's Built</a>
           <a class="button ghost" href="https://odyssey-workbench.streamlit.app/">Launch App</a>
         </div>
       </nav>
@@ -127,100 +127,100 @@
           <div class="control-card">
             <div class="control-details">
               <h3>Upload Excel file + config (optional)</h3>
-              <p>Upload a single Excel file for analysis. Optionally attach a saved config to restore sheet, column, plot, and label settings.</p>
+              <p>Upload a single Excel file for analysis. Optionally attach a saved config to restore sheet, column, plot, and label settings without redoing setup.</p>
               <ul>
-                <li>Upload Excel file</li>
-                <li>Upload config (optional)</li>
-                <li>Informational prompt if no file is uploaded</li>
+                <li>Upload Excel file: selects the raw data source for the run.</li>
+                <li>Upload config (optional): uses previous choices to rerun the same analysis in ODyssey.</li>
+                <li>Informational prompt: appears until a valid file is provided.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Sheet + time + blank settings</h3>
-              <p>Select the worksheet, then confirm the time column, time unit, and optional blank normalization.</p>
+              <p>Select the worksheet, confirm the time column and unit, then decide whether to apply blank normalization to correct baseline drift.</p>
               <ul>
-                <li>Sheet selector</li>
-                <li>Time column dropdown</li>
-                <li>Time unit selector (minutes, hours, hh:mm:ss)</li>
-                <li>Blank normalization toggle + blank column(s)</li>
+                <li>Sheet selector: picks which worksheet to analyze.</li>
+                <li>Time column dropdown: tells ODyssey which column defines the timeline.</li>
+                <li>Time unit selector: sets minutes, hours, or hh:mm:ss parsing.</li>
+                <li>Blank normalization toggle: when off, you must choose blank columns; OD values are corrected by subtracting the mean blank signal at each time point.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Replicate mapping</h3>
-              <p>Group columns into treatments and add replicate groups for clean aggregation.</p>
+              <p>Group columns into treatments and assign replicates so aggregation and statistics stay consistent across plots and tables.</p>
               <ul>
-                <li>Replicate column multi-select</li>
-                <li>Treatment name input</li>
-                <li>Add group / clear groups</li>
+                <li>Replicate column multi-select: choose the columns that belong to one treatment.</li>
+                <li>Treatment name input: labels the group for plotting and reporting.</li>
+                <li>Add group / clear groups: build multiple treatment sets or reset the mapping.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Preview + fit window</h3>
-              <p>Inspect the preview plot, set the exponential window, and optionally compute live R².</p>
+              <p>Inspect the preview plot, set the exponential window, and optionally compute live R<sup>2</sup> to see fit quality as you adjust.</p>
               <ul>
-                <li>Fit window slider</li>
-                <li>Live R² toggle or calculate button</li>
-                <li>Highlighted window readout</li>
+                <li>Fit window slider: selects the start/end time used for growth rate fitting.</li>
+                <li>Live R<sup>2</sup> toggle or calculate button: updates fit stats while you drag, or waits until you confirm for faster UI.</li>
+                <li>Highlighted window readout: shows the active interval on the preview plot.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>AUC settings</h3>
-              <p>Choose how to compute area under the curve and preview the selected window.</p>
+              <p>Choose how to compute area under the curve and preview the selected window before running analysis.</p>
               <ul>
-                <li>AUC unit selector</li>
-                <li>AUC window mode</li>
-                <li>Custom range slider</li>
+                <li>AUC unit selector: sets the output unit (OD*min or OD*hour).</li>
+                <li>AUC window mode: full range, fit window, or a custom range.</li>
+                <li>Custom range slider: appears when custom is selected; defines the integration bounds.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Run analysis + results</h3>
-              <p>Run the analysis, view fit results with QC flags, and review definitions.</p>
+              <p>Run the analysis, view fit results with QC flags, and review metric definitions for reproducibility.</p>
               <ul>
-                <li>Run analysis button</li>
-                <li>Results table</li>
-                <li>QC flags column</li>
+                <li>Run analysis button: executes growth rate, doubling time, and AUC calculations.</li>
+                <li>Results table: shows per-treatment results with computed metrics.</li>
+                <li>QC flags column: highlights low R<sup>2</sup> or non-positive growth rates.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Growth curve plots</h3>
-              <p>Choose overlay, small multiples, or compare-runs layout, with optional SD bands.</p>
+              <p>Choose overlay, small multiples, or compare-runs layout, and decide whether to show SD bands.</p>
               <ul>
-                <li>Plot layout selector</li>
-                <li>Show SD band toggle</li>
-                <li>Plot group controls</li>
+                <li>Plot layout selector: overlay puts all treatments on one chart; small multiples creates one chart per treatment; compare runs overlays the same treatment across runs.</li>
+                <li>Show SD band toggle: adds shaded variability around mean curves when replicates are available.</li>
+                <li>Plot group controls: group label names the group in the UI and downloads; plot group selects which treatments are bundled together, with optional title and axis label overrides.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Custom tick intervals (plots)</h3>
-              <p>Optionally set X/Y tick spacing before exporting growth curve plots.</p>
+              <p>Optionally set X/Y tick spacing for plot readability and ensure exports match what you see.</p>
               <ul>
-                <li>Custom tick intervals toggle</li>
-                <li>X-axis interval input</li>
-                <li>Y-axis interval input</li>
+                <li>Custom tick intervals toggle: reveals manual tick controls when enabled.</li>
+                <li>X-axis interval input: forces fixed spacing on the time axis.</li>
+                <li>Y-axis interval input: forces fixed spacing on OD values.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Downloads</h3>
-              <p>Export results, config, plots, reports, and long-format data in a single zip.</p>
+              <p>Export results, config, plots, reports, and long-format data in a single zip tailored to your needs.</p>
               <ul>
-                <li>Results CSV</li>
-                <li>Long format CSV</li>
-                <li>Build download zip</li>
+                <li>Results CSV toggle: include the table of computed metrics.</li>
+                <li>Long format CSV toggle: include the long_df used for overlays and replotting.</li>
+                <li>Build download zip: packages all selected artifacts in one file.</li>
               </ul>
             </div>
           </div>
@@ -234,53 +234,53 @@
               <h3>Zip upload</h3>
               <p>Upload ODyssey zip exports to compare without re-running analysis.</p>
               <ul>
-                <li>Upload ODyssey zip(s)</li>
-                <li>Loaded runs status</li>
-                <li>Consistency warning</li>
+                <li>Upload ODyssey zip(s): selects one or more exported bundles.</li>
+                <li>Loaded runs status: confirms which runs were parsed successfully.</li>
+                <li>Consistency warning: reminds you to align units and naming across runs.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Rename treatments (optional)</h3>
-              <p>Standardize labels across runs so comparisons line up cleanly.</p>
+              <p>Standardize labels across runs so comparisons line up cleanly, even when original names differ.</p>
               <ul>
-                <li>Rename fields per treatment</li>
-                <li>Applied to tables and plots</li>
-                <li>Optional</li>
+                <li>Rename fields per treatment: input display names without changing source data.</li>
+                <li>Applied to tables and plots: all comparison outputs use the renamed labels.</li>
+                <li>Optional: leave blank to keep original treatment names.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Comparison table + summary</h3>
-              <p>Review per-run tables and mean summaries by treatment.</p>
+              <p>Review per-run tables and mean summaries by treatment to spot run-to-run shifts.</p>
               <ul>
-                <li>Combined table</li>
-                <li>Summary table</li>
-                <li>Sorted by treatment</li>
+                <li>Combined table: raw results from each run stacked together.</li>
+                <li>Summary table: mean metrics by run and treatment.</li>
+                <li>Sorted by treatment: keeps labels aligned for quick scanning.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Metric comparison (bar chart)</h3>
-              <p>Compare the same treatment across runs using grouped bars.</p>
+              <p>Compare the same treatment across runs using grouped bars for a single metric.</p>
               <ul>
-                <li>Metric selector</li>
-                <li>Treatment multi-select</li>
-                <li>Grouped bar plot</li>
+                <li>Metric selector: choose growth rate, doubling time, AUC, or other numeric fields.</li>
+                <li>Treatment multi-select: choose which treatments appear in the plot.</li>
+                <li>Grouped bar plot: shows each run side-by-side per treatment.</li>
               </ul>
             </div>
           </div>
           <div class="control-card">
             <div class="control-details">
               <h3>Growth curve comparison</h3>
-              <p>Overlay growth curves from multiple runs with optional SD bands.</p>
+              <p>Overlay growth curves from multiple runs with optional SD bands to compare shape and timing.</p>
               <ul>
-                <li>Run selector</li>
-                <li>Show SD band toggle</li>
-                <li>Download plot</li>
+                <li>Run selector: choose which runs appear on the plot.</li>
+                <li>Show SD band toggle: adds variability shading for each run if replicates exist.</li>
+                <li>Download plot: exports an interactive HTML chart of the comparison.</li>
               </ul>
             </div>
           </div>
@@ -289,9 +289,9 @@
               <h3>Custom tick intervals (curves)</h3>
               <p>Control X/Y tick spacing for comparison plots before download.</p>
               <ul>
-                <li>Custom tick intervals toggle</li>
-                <li>X-axis interval input</li>
-                <li>Y-axis interval input</li>
+                <li>Custom tick intervals toggle: enables manual tick spacing controls.</li>
+                <li>X-axis interval input: consistent time steps across runs.</li>
+                <li>Y-axis interval input: consistent OD steps across runs.</li>
               </ul>
             </div>
           </div>
@@ -300,3 +300,4 @@
     </main>
   </body>
 </html>
+
