@@ -146,8 +146,8 @@ def main():
         unsafe_allow_html=True,
     )
     st.markdown(
-        "Learn more: [Project overview](README.md)  \n"
-        "Add Excel file. JSON config file is optional."
+        "Learn more: [ODyssey home](file:///D:/Academic_Weizmann/WIS_pythonGabor/Coding/ODyssey/docs/index.html)  \n"
+        "Upload an Excel file or compare runs from zip exports. A JSON config is optional."
     )
     st.subheader("Compare runs")
     st.caption("Compare previously analyzed runs by uploading ODyssey zip exports.")
