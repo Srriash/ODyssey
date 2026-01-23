@@ -22,7 +22,7 @@ comparisons across runs harder to trust.
 - Export results, plots, and reports in a single bundle.
 - Persist analysis settings with reusable JSON configs.
 
-### Proposed Solution
+### Solution
 Deliver a Streamlit app that integrates data ingestion, analysis, visualization, and exports:
 - Upload Excel data and optionally load a saved config.
 - Preview curves and set the fit window (auto or manual).
@@ -39,22 +39,11 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 6. Generate plots and QC flags for low R^2 or non-positive growth rates.
 7. Export results, plots, and configs for reuse and comparison.
 
-### Expected Outcomes
-- Faster, repeatable growth-curve analysis.
-- Consistent outputs across users and runs.
-- Comparison-ready exports and shareable reports.
-
 ### Scope and Deliverables
 - Streamlit analysis app with reusable configs.
 - Overlay, small-multiple, and comparison plots.
 - CSV results, long-format data, HTML/PNG plots, and PDF reports.
 - Zip exports suitable for cross-run comparisons.
-
-### Risks and Mitigations
-- Risk: heterogeneity in Excel layouts.
-  Mitigation: flexible mapping UI with previews and saved configs.
-- Risk: noisy data leading to poor fits.
-  Mitigation: QC flags and manual window adjustments.
 
 ### Tech Stack
 - Python 3.9+
