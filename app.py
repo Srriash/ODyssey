@@ -146,8 +146,7 @@ def main():
         unsafe_allow_html=True,
     )
     st.markdown(
-        "Learn more: [ODyssey home](https://srriash.github.io/ODyssey-Growth-curve-workbench/)  \n"
-        "Upload an Excel file or compare runs from zip exports. A JSON config is optional."
+        "Learn more: [ODyssey home](https://srriash.github.io/ODyssey-Growth-curve-workbench/)"
     )
     st.subheader("Compare runs")
     st.caption("Compare previously analyzed runs by uploading ODyssey zip exports.")

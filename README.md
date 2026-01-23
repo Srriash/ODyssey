@@ -34,7 +34,7 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 1. Read Excel files and parse time columns into numeric units.
 2. Apply optional blank normalization using selected blank columns.
 3. Convert wide data to long format by treatment and replicate.
-4. Fit log(OD) vs time within selected windows to estimate growth rate.
+4. Fit a linear model to log(OD) vs time within selected windows to estimate growth rate.
 5. Compute doubling time and AUC with unit conversions.
 6. Generate plots and QC flags for low R^2 or non-positive growth rates.
 7. Export results, plots, and configs for reuse and comparison.
