@@ -146,7 +146,7 @@ def main():
         unsafe_allow_html=True,
     )
     st.markdown(
-        "Learn more: [ODyssey home](file:///D:/Academic_Weizmann/WIS_pythonGabor/Coding/ODyssey/docs/index.html)  \n"
+        "Learn more: [ODyssey home](https://srriash.github.io/ODyssey-Growth-curve-workbench/)  \n"
         "Upload an Excel file or compare runs from zip exports. A JSON config is optional."
     )
     st.subheader("Compare runs")
