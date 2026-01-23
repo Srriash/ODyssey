@@ -7,7 +7,7 @@ ODyssey - Growth Curve Workbench is a web app for analyzing plate reader growth 
 raw Excel files into reusable analyses with clear fit windows, QC flags, and exportable plots. A
 config-first workflow lets users rerun the same analysis on new files without re-entering settings.
 
-Website: https://srriash.github.io/ODyssey-Growth-curve-workbench/
+Read the Website for more: https://srriash.github.io/ODyssey-Growth-curve-workbench/
 
 ### Problem Statement
 Growth curve workflows often require repeated setup: selecting sheets, time columns, replicate
