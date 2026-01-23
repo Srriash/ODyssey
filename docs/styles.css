@@ -285,6 +285,19 @@ a[aria-disabled="true"] {
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 
+.diagram {
+  background: #f4f9ff;
+  border-radius: 18px;
+  border: 1px dashed rgba(14, 107, 168, 0.25);
+  padding: 16px;
+}
+
+.diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .control-details h3 {
   margin: 0 0 8px;
   font-size: 1.2rem;

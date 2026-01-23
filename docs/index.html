@@ -129,12 +129,15 @@
           <article class="feature-card">
             <span class="feature-dot dot-2" aria-hidden="true"></span>
             <h3>Growth rate + doubling time</h3>
-            <p>Fit log(OD) vs time and export growth metrics with QC flags.</p>
+            <p>
+              Uses an exponential growth model by fitting a straight line to log(OD) vs time using all
+              points in the selected window, then exports growth metrics with QC flags.
+            </p>
           </article>
           <article class="feature-card">
             <span class="feature-dot dot-3" aria-hidden="true"></span>
             <h3>Area under the curve</h3>
-            <p>Compute AUC using full range, fit window, or custom intervals.</p>
+            <p>Compute AUC with trapezoidal integration over the full range, fit window, or a custom interval.</p>
           </article>
           <article class="feature-card">
             <span class="feature-dot dot-4" aria-hidden="true"></span>
@@ -150,11 +153,6 @@
             <span class="feature-dot dot-6" aria-hidden="true"></span>
             <h3>Run comparisons</h3>
             <p>Compare metrics and growth curves across runs with optional renaming.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-dot dot-2" aria-hidden="true"></span>
-            <h3>Growth analysis model</h3>
-            <p>Calculated using a linear regression model on log(OD) vs time.</p>
           </article>
         </div>
       </section>
