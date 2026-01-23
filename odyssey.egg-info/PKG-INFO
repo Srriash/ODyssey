@@ -1,6 +1,18 @@
+Metadata-Version: 2.4
+Name: odyssey
+Version: 0.1.0
+Summary: ODyssey Growth Curve Workbench
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: plotly
+Requires-Dist: reportlab
+Requires-Dist: streamlit
+
 # ODyssey
 
-## Project Proposal
+## Updated Project Proposal
 
 ### Project Summary
 ODyssey - Growth Curve Workbench is a web app for analyzing plate reader growth curves. It turns

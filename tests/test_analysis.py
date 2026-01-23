@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from odyssey.analysis import _mean_sd_by_treatment_time, auto_select_exponential_window, fit_growth_rates
+from odyssey.analysis import _compute_auc, _mean_sd_by_treatment_time, _qc_flags, fit_growth_rates
 
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -25,36 +25,25 @@ def test_mean_sd_by_treatment_time():
 def test_fit_growth_rates_shape():
     long_df = _load_long_df()
     results = fit_growth_rates(long_df, time_window=(0, 4), auto_window=False)
-    assert set(["treatment", "replicate", "mu", "r2"]).issubset(results.columns)
+    assert set(["treatment", "replicate", "mu", "r2", "window_start", "window_end"]).issubset(
+        results.columns
+    )
     assert len(results) == 4
 
 
-def test_auto_window_clean_exponential():
-    time = np.arange(0, 16, 1, dtype=float)
-    od = np.exp(0.3 * time)
-    od[10:] = od[10]  # plateau
-    result = auto_select_exponential_window(time, od, {"min_points": 4})
-    assert "error" not in result
-    assert result["mu"] > 0
-    assert result["r2"] >= 0.99
+def test_compute_auc():
+    long_df = _load_long_df()
+    auc_df = _compute_auc(long_df, time_window=(0, 4))
+    row = auc_df[(auc_df["treatment"] == "A") & (auc_df["replicate"] == 1)].iloc[0]
+    assert row["auc"] == pytest.approx(1.95)
 
 
-def test_auto_window_noisy_exponential():
-    rng = np.random.default_rng(42)
-    time = np.arange(0, 12, 1, dtype=float)
-    od = np.exp(0.25 * time)
-    od = od * (1 + rng.normal(0, 0.05, size=od.shape))
-    od = np.clip(od, 1e-3, None)
-    result = auto_select_exponential_window(time, od, {"min_points": 4, "r2_min": 0.97})
-    assert "error" not in result
-    assert result["mu"] > 0
-
-
-def test_auto_window_diauxic_shift_prefers_fast_phase():
-    time = np.arange(0, 21, 1, dtype=float)
-    od = np.exp(0.12 * time)
-    od[9:12] = od[8]  # short plateau
-    od[12:] = od[12] * np.exp(0.35 * (time[12:] - time[12]))
-    result = auto_select_exponential_window(time, od, {"min_points": 4, "r2_min": 0.97})
-    assert "error" not in result
-    assert result["mu"] > 0
+def test_qc_flags():
+    df = pd.DataFrame(
+        {
+            "mu": [0.2, -0.1, 0.3],
+            "r2": [0.95, 0.99, 0.5],
+        }
+    )
+    flagged = _qc_flags(df, r2_threshold=0.9)
+    assert flagged["qc_flags"].tolist() == ["", "non_positive_mu", "low_r2(<0.9)"]

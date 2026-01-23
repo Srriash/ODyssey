@@ -78,8 +78,13 @@ a[aria-disabled="true"] {
 }
 
 .nav-link {
-  padding: 6px 8px;
+  padding: 8px 14px;
   color: var(--muted);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+  font-weight: 600;
 }
 
 .button {
