@@ -9,11 +9,11 @@ description = "ODyssey Growth Curve Workbench"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-  "kaleido",
+  "kaleido==0.2.1",
   "numpy",
   "openpyxl",
   "pandas",
-  "plotly",
+  "plotly>=5.24",
   "reportlab",
   "streamlit",
 ]
