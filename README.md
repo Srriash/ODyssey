@@ -30,7 +30,7 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 - Export results, plots, and a PDF report as a zip.
 - Reuse configs to repeat the same analysis on new runs.
 
-### Methods
+### **Methods**
 1. Read Excel files and parse time columns into numeric units.
 2. Apply optional blank normalization using selected blank columns.
 3. Convert wide data to long format by treatment and replicate.
