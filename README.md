@@ -34,7 +34,7 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 1. Read Excel files and parse time columns into numeric units.
 2. Apply optional blank normalization using selected blank columns.
 3. Convert wide data to long format by treatment and replicate.
-4. **Fit an exponential growth model** by linear regression on log(OD) vs time within the selected window to estimate growth rate.
+4. Growth analysis is calculated using a linear regression model on log(OD) vs time within the selected window.
 5. Compute doubling time and AUC with unit conversions.
 6. Generate plots and QC flags for low R^2 or non-positive growth rates.
 7. Export results, plots, and configs for reuse and comparison.
