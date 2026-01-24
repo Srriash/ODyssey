@@ -87,61 +87,44 @@
             <article class="step">
               <span class="step-number">01</span>
               <h3>Upload the file</h3>
-              <p>Choose <strong>example_run1.xlsx</strong> from your local machine.</p>
-              <ul>
-                <li>Use the main uploader in the Analysis section (not the Compare Runs uploader).</li>
-                <li>If you previously loaded a config, clear it to start fresh for this walkthrough.</li>
-              </ul>
+              <p>Upload <strong>example_run1.xlsx</strong> using the main Analysis uploader.</p>
             </article>
             <article class="step">
               <span class="step-number">02</span>
               <h3>Select the sheet + time column</h3>
-              <p>Pick <strong>Sheet1</strong>, confirm the time column, and set the time unit.</p>
-              <ul>
-                <li>Time column should be the left-most column in the file.</li>
-                <li>Use <strong>minutes</strong> or <strong>hours</strong> depending on the scale you want reported.</li>
-                <li>If the time is formatted as hh:mm:ss, choose the hh:mm:ss option and it will be converted.</li>
-              </ul>
+              <p>Pick <strong>Sheet1</strong>, set the time column to the first column, and choose <strong>minutes</strong>.</p>
             </article>
             <article class="step">
               <span class="step-number">03</span>
               <h3>Blank normalization (optional)</h3>
-              <p>If the data is not blank-normalized, select one or more blank columns.</p>
-              <ul>
-                <li>Pick the columns that contain blank wells so OD is baseline-corrected.</li>
-                <li>Leave blank normalization off if the input is already corrected.</li>
-              </ul>
+              <p>Keep <strong>OD values are blank normalized</strong> checked. No blank columns are needed for this dataset.</p>
             </article>
             <article class="step">
               <span class="step-number">04</span>
               <h3>Map treatments + replicates</h3>
-              <p>Group columns into treatments, then add each replicate group.</p>
+              <p>Create one replicate group per OD column.</p>
               <ul>
-                <li>Select one or more columns that belong to the same treatment.</li>
-                <li>Set the replicate number for those columns, then click <strong>Add replicate group</strong>.</li>
-                <li>Repeat until every data column is assigned to a treatment + replicate.</li>
+                <li>Select a single OD column, use its column name as the treatment name, and click <strong>Add replicate group</strong>.</li>
+                <li>Repeat until all OD columns are assigned.</li>
               </ul>
             </article>
             <article class="step">
               <span class="step-number">05</span>
               <h3>Make the plots</h3>
-              <p>Choose overlay or small multiples, toggle SD bands, and set labels.</p>
+              <p>Set plot mode to <strong>Overlay (compare treatments)</strong>.</p>
               <ul>
-                <li>Use global labels to set the plot title and axis labels.</li>
-                <li>Optional: create plot groups to compare subsets of treatments.</li>
-                <li>Enable custom tick intervals if you want fixed spacing on axes.</li>
+                <li>Set the plot title to <strong>Example run 1</strong>.</li>
+                <li>Leave SD bands off (each treatment has a single replicate here).</li>
               </ul>
             </article>
             <article class="step">
               <span class="step-number">06</span>
               <h3>Fit and export</h3>
-              <p>Confirm the fit window, run analysis, and download the zip export.</p>
+              <p>Leave the default highlighted window, run analysis, and download the zip export.</p>
               <ul>
-                <li>Adjust the highlighted fit window to cover the exponential phase.</li>
-                <li>Optionally calculate live R<sup>2</sup> to evaluate window quality.</li>
-                <li>Run analysis, review the results table, then build the download zip.</li>
-                <li>For comparisons later, include <strong>Long format CSV</strong> in the download.</li>
-                <li>Keep the generated zip file; you will upload it in the Compare Runs section.</li>
+                <li>Keep Results CSV and Config JSON enabled.</li>
+                <li>Enable <strong>Long format CSV</strong>.</li>
+                <li>Build the zip and save it as <strong>example_run1.zip</strong>.</li>
               </ul>
             </article>
           </div>
@@ -153,37 +136,37 @@
             <article class="step">
               <span class="step-number">01</span>
               <h3>Analyze both runs</h3>
-              <p>Run analysis on each file and export the zip from Downloads.</p>
+              <p>Repeat the same steps for <strong>example_run2.xlsx</strong>.</p>
               <ul>
-                <li>Repeat the same settings for both files to make results comparable.</li>
-                <li>Make sure <strong>Long format CSV</strong> is enabled in both exports.</li>
+                <li>Use <strong>Sheet1</strong>, time in <strong>minutes</strong>, and blank-normalized data.</li>
+                <li>Export with <strong>Long format CSV</strong> enabled.</li>
+                <li>Save the zip as <strong>example_run2.zip</strong>.</li>
               </ul>
             </article>
             <article class="step">
               <span class="step-number">02</span>
               <h3>Upload zip exports</h3>
-              <p>Use the Compare Runs section to load the zip files.</p>
+              <p>Upload <strong>example_run1.zip</strong> and <strong>example_run2.zip</strong> in Compare Runs.</p>
               <ul>
-                <li>Upload both zip files together to compare in one view.</li>
-                <li>If prompted, pick a target time unit for the comparison.</li>
+                <li>Select <strong>minutes</strong> as the target time unit.</li>
               </ul>
             </article>
             <article class="step">
               <span class="step-number">03</span>
               <h3>Review metrics</h3>
-              <p>Inspect grouped bar plots to compare growth rate, doubling time, and AUC.</p>
+              <p>Use the comparison table and summary to compare the two runs.</p>
               <ul>
-                <li>Optionally rename treatments so labels match across runs.</li>
-                <li>Use the summary table to compare run-level averages.</li>
+                <li>Keep treatment names as-is.</li>
+                <li>Select <strong>Growth rate (per min)</strong> in the metric comparison plot.</li>
               </ul>
             </article>
             <article class="step">
               <span class="step-number">04</span>
               <h3>Overlay growth curves</h3>
-              <p>Select treatments and show SD bands to compare curves directly.</p>
+              <p>Plot the same treatments for both runs to compare curve shapes.</p>
               <ul>
-                <li>Select the same treatments for each run to compare shapes.</li>
-                <li>Use SD bands to see replicate variability.</li>
+                <li>Select all treatments.</li>
+                <li>Leave SD band off (single-replicate example data).</li>
               </ul>
             </article>
           </div>
