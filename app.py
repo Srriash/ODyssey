@@ -1,8 +1,6 @@
-import json
-import io
+﻿import json
 import os
 import re
-import zipfile
 from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
@@ -11,10 +9,6 @@ import plotly.colors as pc
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 APP_TITLE = "ODyssey Growth Curve Workbench"
 CONFIG_VERSION = 1
 from odyssey.analysis import (
@@ -32,7 +26,7 @@ from odyssey.analysis import (
     _window_r2_by_treatment,
     fit_growth_rates,
 )
-from odyssey.export import _build_config, _build_report_pdf
+from odyssey.export import _build_config, build_download_zip
 from odyssey.cache import _cached_preview_data
 from odyssey.io_utils import (
     _apply_time_unit,
@@ -55,68 +49,26 @@ from odyssey.plotting import (
     _style_plot,
     _to_rgba,
 )
-def _analyze_file(
-    uploaded,
-    sheet_name,
-    time_col,
-    time_unit,
-    column_map,
-    time_window,
-    auto_window,
-    min_points,
-    blank_normalized,
-    blank_cols,
-    auc_window=None,
-):
-    df = _read_excel_file(uploaded, sheet_name)
-    if not blank_normalized and blank_cols:
-        df = _apply_blank_normalization(df, time_col, blank_cols)
-    time_series = _parse_time_series(df[time_col])
-    time_series = _apply_time_unit(time_series, time_unit if time_unit != "hh:mm:ss" else "minutes")
-    working_df = df.copy()
-    working_df["_time_numeric"] = time_series
-    if time_series.isna().all():
-        raise ValueError(f"Time column could not be parsed in {uploaded.name}.")
-    column_map_df = pd.DataFrame(column_map)
-    long_df = _long_format_from_map(working_df, "_time_numeric", column_map_df)
-    if long_df.empty:
-        raise ValueError(f"No treatment columns selected in {uploaded.name}.")
-    results = fit_growth_rates(
-        long_df,
-        time_col="time",
-        value_col="od",
-        group_cols=("treatment", "replicate"),
-        time_window=time_window,
-        auto_window=auto_window,
-        min_points=min_points,
-    )
-    mean_df = _mean_sd_by_treatment_time(long_df)
-    auc_df = _compute_auc(
-        long_df,
-        time_col="time",
-        value_col="od",
-        group_cols=("treatment", "replicate"),
-        time_window=auc_window,
-    )
-    return {
-        "name": uploaded.name,
-        "long_df": long_df,
-        "results": results,
-        "mean_df": mean_df,
-        "auc": auc_df,
-    }
-def _apply_blank_normalization(df, time_col, blank_col):
-    working_df = df.copy()
-    data_cols = [c for c in working_df.columns if c != time_col]
-    numeric = working_df[data_cols].apply(pd.to_numeric, errors="coerce")
-    if isinstance(blank_col, (list, tuple, pd.Index)):
-        blank_cols = list(blank_col)
-    else:
-        blank_cols = [blank_col]
-    blank_vals = working_df[blank_cols].apply(pd.to_numeric, errors="coerce")
-    blank_mean = blank_vals.mean(axis=1)
-    working_df[data_cols] = numeric.sub(blank_mean, axis=0)
-    return working_df
+from odyssey.pipeline import analyze_file, apply_blank_normalization
+
+
+def _dedupe_columns(df):
+    if not df.columns.duplicated().any():
+        return df
+    counts = {}
+    new_cols = []
+    for col in df.columns:
+        if col in counts:
+            counts[col] += 1
+            new_cols.append(f"{col}.{counts[col]}")
+        else:
+            counts[col] = 0
+            new_cols.append(col)
+    df = df.copy()
+    df.columns = new_cols
+    return df
+
+
 def main():
     st.set_page_config(page_title=APP_TITLE, layout="wide")
     st.title(APP_TITLE)
@@ -176,11 +128,94 @@ def main():
                 "Comparison assumes consistent units and treatment naming across runs. "
                 "If runs used different time units or window settings, interpret differences carefully."
             )
+            target_time_unit = st.selectbox(
+                "Convert time units to",
+                options=["minutes", "hours"],
+                index=0,
+                key="compare_target_time_unit",
+            )
+            st.caption(
+                "Time-based metrics and curves are converted using each run's saved time unit in its config."
+            )
+            rename_map = {}
             combined_frames = []
             compare_warnings = []
+            time_unit_warnings = []
             required_cols = {"treatment", "replicate"}
             for run in compare_runs:
                 results_df = run["results"].copy()
+                rename_cols = {}
+                if "treatment" not in results_df.columns and "Treatment" in results_df.columns:
+                    rename_cols["Treatment"] = "treatment"
+                if "replicate" not in results_df.columns and "Replicate" in results_df.columns:
+                    rename_cols["Replicate"] = "replicate"
+                if rename_cols:
+                    results_df = results_df.rename(columns=rename_cols)
+                run_config = run.get("config") or {}
+                run_time_unit = run_config.get("time_unit")
+                if run_time_unit:
+                    run_base_unit = _base_time_unit(run_time_unit)
+                else:
+                    run_base_unit = target_time_unit
+                    time_unit_warnings.append(
+                        f"{run['name']}: missing time_unit in config; assuming {target_time_unit}"
+                    )
+                if run_base_unit != target_time_unit:
+                    for col in results_df.columns:
+                        col_lower = col.lower()
+                        if "growth rate" in col_lower:
+                            results_df[col] = _convert_growth_rate(
+                                pd.to_numeric(results_df[col], errors="coerce"),
+                                run_base_unit,
+                                target_time_unit,
+                            )
+                        elif "doubling time" in col_lower:
+                            results_df[col] = _convert_duration(
+                                pd.to_numeric(results_df[col], errors="coerce"),
+                                run_base_unit,
+                                target_time_unit,
+                            )
+                        elif "window start" in col_lower or "window end" in col_lower:
+                            results_df[col] = _convert_duration(
+                                pd.to_numeric(results_df[col], errors="coerce"),
+                                run_base_unit,
+                                target_time_unit,
+                            )
+                        elif "auc" in col_lower:
+                            results_df[col] = _convert_auc(
+                                pd.to_numeric(results_df[col], errors="coerce"),
+                                run_base_unit,
+                                target_time_unit,
+                            )
+                    if any("growth rate" in c.lower() for c in results_df.columns):
+                        per_label = "per hour" if target_time_unit == "hours" else "per min"
+                        results_df = results_df.rename(
+                            columns={
+                                c: f"Growth rate ({per_label})"
+                                for c in results_df.columns
+                                if "growth rate" in c.lower()
+                            }
+                        )
+                    if any("doubling time" in c.lower() for c in results_df.columns):
+                        dt_label = "hours" if target_time_unit == "hours" else "min"
+                        results_df = results_df.rename(
+                            columns={
+                                c: f"Doubling time ({dt_label})"
+                                for c in results_df.columns
+                                if "doubling time" in c.lower()
+                            }
+                        )
+                    if any("auc" in c.lower() for c in results_df.columns):
+                        auc_label = "OD*hour" if target_time_unit == "hours" else "OD*min"
+                        results_df = results_df.rename(
+                            columns={
+                                c: f"AUC ({auc_label})"
+                                for c in results_df.columns
+                                if "auc" in c.lower()
+                            }
+                        )
+                # Ensure unique column names to avoid concat errors after renames.
+                results_df = _dedupe_columns(results_df)
                 missing = required_cols - set(results_df.columns)
                 if missing:
                     compare_warnings.append(
@@ -193,10 +228,15 @@ def main():
                 st.warning("Some runs were skipped:")
                 for msg in compare_warnings:
                     st.write(f"- {msg}")
+            if time_unit_warnings:
+                st.warning("Some runs did not include time units:")
+                for msg in time_unit_warnings:
+                    st.write(f"- {msg}")
+            rename_map = {}
             if combined_frames:
                 combined_compare = pd.concat(combined_frames, ignore_index=True)
+                combined_compare = _dedupe_columns(combined_compare)
                 treatments = sorted(combined_compare["treatment"].dropna().unique().tolist())
-                rename_map = {}
                 with st.expander("Rename treatments (optional)", expanded=False):
                     st.caption("Provide display names used in comparison tables and plots.")
                     for treatment in treatments:
@@ -210,11 +250,20 @@ def main():
                 st.markdown("### Comparison table")
                 st.dataframe(combined_compare)
                 st.markdown("### Summary by treatment")
-                numeric_cols = combined_compare.select_dtypes(include="number").columns.tolist()
-                numeric_cols = [c for c in numeric_cols if c not in ("replicate",)]
+                numeric_compare = combined_compare.copy()
+                non_numeric_cols = {"treatment", "replicate", "run", "treatment_display"}
+                for col in numeric_compare.columns:
+                    if col in non_numeric_cols:
+                        continue
+                    numeric_compare[col] = pd.to_numeric(numeric_compare[col], errors="coerce")
+                numeric_cols = [
+                    c
+                    for c in numeric_compare.columns
+                    if c not in non_numeric_cols and numeric_compare[c].notna().any()
+                ]
                 if numeric_cols:
                     summary = (
-                        combined_compare.groupby(["run", "treatment_display"])[numeric_cols]
+                        numeric_compare.groupby(["run", "treatment_display"])[numeric_cols]
                         .mean()
                         .reset_index()
                     )
@@ -250,7 +299,10 @@ def main():
             curve_runs = [run for run in compare_runs if run.get("long_df") is not None]
             if curve_runs:
                 st.markdown("### Compare growth curves")
-                st.caption("Uses long_df.csv from each zip. Enable in Downloads when exporting.")
+                st.caption(
+                    "Uses long_df.csv from each zip. Enable in Downloads when exporting. "
+                    f"Curves are converted to {target_time_unit}."
+                )
                 show_sd_compare = st.checkbox("Show SD band", value=True, key="compare_show_sd")
                 custom_ticks_compare = st.checkbox(
                     "Custom tick intervals",
@@ -292,12 +344,26 @@ def main():
                     default=all_treatments[:3],
                     key="compare_treatments_select",
                 )
+                if not rename_map:
+                    rename_map = {treatment: treatment for treatment in all_treatments}
                 if selected_runs and selected_treatments:
                     curves = []
                     for run in curve_runs:
                         if run["name"] not in selected_runs:
                             continue
                         df = run["long_df"].copy()
+                        run_config = run.get("config") or {}
+                        run_time_unit = run_config.get("time_unit")
+                        if run_time_unit:
+                            run_base_unit = _base_time_unit(run_time_unit)
+                        else:
+                            run_base_unit = target_time_unit
+                        if run_base_unit != target_time_unit:
+                            df["time"] = _convert_duration(
+                                pd.to_numeric(df["time"], errors="coerce"),
+                                run_base_unit,
+                                target_time_unit,
+                            )
                         df["run"] = run["name"]
                         curves.append(df)
                     curves_df = pd.concat(curves, ignore_index=True)
@@ -355,7 +421,13 @@ def main():
                                     line=dict(color=color, **run_styles[run]),
                                 )
                             )
-                    _style_plot(fig, "Growth curves across runs", "Time", "OD", show_grid=False)
+                    _style_plot(
+                        fig,
+                        "Growth curves across runs",
+                        f"Time ({target_time_unit})",
+                        "OD",
+                        show_grid=False,
+                    )
                     _apply_tick_intervals(fig, x_tick_interval_compare, y_tick_interval_compare)
                     st.plotly_chart(fig, width="stretch", key="compare_growth_curves")
                     html = pio.to_html(fig, full_html=False, include_plotlyjs="cdn")
@@ -425,7 +497,7 @@ def main():
                 default=default_blank_cols,
             )
             if not blank_normalized and blank_cols:
-                working_df = _apply_blank_normalization(df, time_col, blank_cols)
+                working_df = apply_blank_normalization(df, time_col, blank_cols)
             elif not blank_normalized and not blank_cols:
                 st.warning("Select at least one blank column for normalization.")
         else:
@@ -669,16 +741,23 @@ def main():
                     r2_df = _window_r2_by_treatment(preview_long_df, time_window=time_window)
                     if not r2_df.empty:
                         r2_median = r2_df["r2"].median()
-                        st.caption(f"Median R\u00B2 in highlighted window: {r2_median:.3f}")
+                        r2_mean = r2_df["r2"].mean()
+                        st.caption(
+                            f"Median R\u00B2 in highlighted window: {r2_median:.3f} "
+                            f"(Mean: {r2_mean:.3f})"
+                        )
                 else:
                     if st.button("Calculate R\u00B2 for highlighted window"):
                         r2_df = _window_r2_by_treatment(preview_long_df, time_window=time_window)
                         if not r2_df.empty:
                             r2_median = r2_df["r2"].median()
+                            r2_mean = r2_df["r2"].mean()
                             st.session_state.preview_r2_median = r2_median
+                            st.session_state.preview_r2_mean = r2_mean
                     if "preview_r2_median" in st.session_state:
                         st.caption(
-                            f"Median R\u00B2 in highlighted window: {st.session_state.preview_r2_median:.3f}"
+                            f"Median R\u00B2 in highlighted window: {st.session_state.preview_r2_median:.3f} "
+                            f"(Mean: {st.session_state.get('preview_r2_mean', float('nan')):.3f})"
                         )
     except Exception as exc:
         st.warning(f"Preview unavailable: {exc}")
@@ -788,7 +867,7 @@ def main():
                         auc_window_range = (np.nan, np.nan)
                 else:
                     auc_window_range = (float(auc_use_window[0]), float(auc_use_window[1]))
-                analysis = _analyze_file(
+                analysis = analyze_file(
                     uploaded,
                     sheet_name,
                     time_col,
@@ -1030,15 +1109,19 @@ def main():
                 plot_artifacts.append((label, download_fig))
     st.subheader("Downloads")
     st.caption("Select what you want and download as a single zip.")
+    if "download_ready" not in st.session_state:
+        st.session_state.download_ready = False
     download_results = st.checkbox("Results CSV", value=True)
     download_long_df = st.checkbox("Long format CSV", value=False)
     download_config = st.checkbox("Config JSON", value=True)
-    download_report = st.checkbox("PDF report", value=True)
     download_plots = st.checkbox("Plots (HTML)", value=True)
-    download_plots_png = st.checkbox("Plots (PNG)", value=False)
+    st.caption(
+        "Note: ZIP exports include only HTML plots. PNGs must be downloaded individually from each plot above. "
+        "For comparing runs, the Long format CSV is needed; PNG/PDF are not required."
+    )
     plot_labels = [label for label, _ in plot_artifacts]
     selected_plots = plot_labels
-    if download_plots or download_plots_png:
+    if download_plots:
         with st.expander("Select specific plots", expanded=False):
             st.caption("Leave empty to include all plots.")
             selected_plots = st.multiselect(
@@ -1046,12 +1129,8 @@ def main():
                 options=plot_labels,
                 default=[],
             )
-    config_filename = st.text_input("Config filename", value="odyssey_config.json")
-    if not config_filename.strip():
-        config_filename = "odyssey_config.json"
-    zip_filename = st.text_input("Zip filename", value="odyssey_downloads.zip")
-    if not zip_filename.strip():
-        zip_filename = "odyssey_downloads.zip"
+    config_filename = "odyssey_config.json"
+    zip_filename = "odyssey_downloads.zip"
     column_map = _build_column_map(available_cols, st.session_state.replicate_groups)
     config_payload = _build_config(
         sheet_name,
@@ -1079,48 +1158,87 @@ def main():
                 "y_label": st.session_state.plot_y_label,
             },
         )
-    st.caption("Your browser will ask where to save the zip.")
-    if st.button("Build download zip"):
-        bundle = io.BytesIO()
-        with zipfile.ZipFile(bundle, "w", zipfile.ZIP_DEFLATED) as zf:
-            if download_config:
-                zf.writestr(config_filename, json.dumps(config_payload, indent=2))
-            if download_results:
-                zf.writestr("results.csv", results.to_csv(index=False))
-            if download_long_df:
-                if analyses:
-                    zf.writestr("long_df.csv", analyses[0]["long_df"].to_csv(index=False))
-            selected_set = set(selected_plots)
-            if download_plots:
-                for idx, (label, fig) in enumerate(plot_artifacts, start=1):
-                    if selected_set and label not in selected_set:
-                        continue
-                    html = pio.to_html(fig, full_html=False, include_plotlyjs="cdn")
-                    safe_label = _safe_filename(label)
-                    zf.writestr(f"plots/plot_{idx}_{safe_label}.html", html)
-            if download_plots_png:
-                for idx, (label, fig) in enumerate(plot_artifacts, start=1):
-                    if selected_set and label not in selected_set:
-                        continue
-                    safe_label = _safe_filename(label)
-                    png = _plot_to_png_bytes(fig)
-                    zf.writestr(f"plots/plot_{idx}_{safe_label}.png", png)
-            if download_report:
-                report_fig = plot_artifacts[0][1] if plot_artifacts else None
-                pdf_bytes = _build_report_pdf(st.session_state.plot_title, results, report_fig, notes)
-                zf.writestr("report.pdf", pdf_bytes)
-        bundle.seek(0)
+    st.caption("Build the zip, then click download.")
+    if "download_zip_bytes" not in st.session_state:
+        st.session_state.download_zip_bytes = None
+    if "download_zip_name" not in st.session_state:
+        st.session_state.download_zip_name = None
+    if "download_zip_error" not in st.session_state:
+        st.session_state.download_zip_error = None
+
+    progress_log = st.empty()
+    progress_bar = st.progress(0)
+    progress_stage = st.empty()
+    build_clicked = st.button("Build download zip", key="build_zip")
+    if build_clicked:
+        with st.spinner("Building zip..."):
+            try:
+                build_start = datetime.now()
+                prev_timings = st.session_state.get("download_zip_timings") or {}
+                st.session_state.download_zip_prev_total = prev_timings.get("total_s")
+
+                def _progress_cb(stage, done, total):
+                    progress_bar.progress(min(done / total, 1.0))
+                    elapsed = (datetime.now() - build_start).total_seconds()
+                    progress_stage.caption(
+                        f"Building: {stage} ({done}/{total}) • {elapsed:.1f}s"
+                    )
+                    progress_log.text("Building zip...")
+
+                zip_bytes, zip_name, build_warnings, build_timings = build_download_zip(
+                    results=results,
+                    analyses=analyses,
+                    plot_artifacts=plot_artifacts,
+                    config_payload=config_payload,
+                    config_filename=config_filename,
+                    download_results=download_results,
+                    download_long_df=download_long_df,
+                    download_config=download_config,
+                    download_plots=download_plots,
+                    selected_plots=selected_plots,
+                    zip_filename=zip_filename,
+                    progress_cb=_progress_cb,
+                )
+                st.session_state.download_zip_bytes = zip_bytes
+                st.session_state.download_zip_name = zip_name
+                st.session_state.download_zip_timings = build_timings
+                st.session_state.download_zip_error = None
+                for msg in build_warnings:
+                    st.warning(msg)
+            except Exception as exc:
+                st.session_state.download_zip_error = str(exc)
+        st.rerun()
+
+    if st.session_state.get("download_zip_error"):
+        st.error(f"Zip build failed: {st.session_state.download_zip_error}")
+    if st.session_state.get("download_zip_bytes"):
+        st.success("Zip ready for download.")
         st.download_button(
             "Download selected (zip)",
-            data=bundle,
-            file_name=zip_filename,
+            data=st.session_state.download_zip_bytes,
+            file_name=st.session_state.get("download_zip_name", "odyssey_downloads.zip"),
             mime="application/zip",
         )
+        st.caption(f"Zip size: {len(st.session_state.download_zip_bytes)} bytes")
+        timings = st.session_state.get("download_zip_timings")
+        if timings:
+            ordered = [
+                "config_json_s",
+                "results_csv_s",
+                "long_df_csv_s",
+                "plots_html_s",
+                "total_s",
+            ]
+            progress_lines = []
+            total = timings.get("total_s") or max(timings.values())
+            for key in ordered:
+                if key not in timings:
+                    continue
+                progress_lines.append(f"{key}: {timings[key]:.2f}s")
+            st.caption("Build timings (s): " + ", ".join(progress_lines))
+    else:
+        st.info("Build a zip to enable the download button.")
     if time_unit == "hh:mm:ss":
         st.caption("Time is fit in minutes; results display uses the selected unit.")
-    if st.button("Run another analysis"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
 if __name__ == "__main__":
     main()

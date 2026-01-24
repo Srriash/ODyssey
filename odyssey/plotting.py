@@ -251,6 +251,22 @@ def _prepare_download_figure(fig):
     return fig_download
 
 
-def _plot_to_png_bytes(fig, width=1000, height=600, scale=2):
-    image_bytes = pio.to_image(fig, format="png", width=width, height=height, scale=scale)
+def _plot_to_png_bytes(fig, width=900, height=520, scale=1.5, timeout=30):
+    try:
+        scope = pio.kaleido.scope
+        scope.default_format = "png"
+        scope.default_width = width
+        scope.default_height = height
+        scope.default_scale = scale
+        scope.timeout = timeout
+    except Exception:
+        pass
+    image_bytes = pio.to_image(
+        fig,
+        format="png",
+        width=width,
+        height=height,
+        scale=scale,
+        engine="kaleido",
+    )
     return image_bytes
