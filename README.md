@@ -19,7 +19,7 @@ comparisons across runs harder to trust.
 - Fit growth rates and doubling times from exponential windows with QC flags.
 - Compute AUC with trapezoidal integration over the full range, fit window, or a custom range.
 - Compare runs using exported results without re-running analysis.
-- Export results, plots, and reports in a single bundle.
+- Export results, plots, and configs in a single bundle.
 - Persist analysis settings with reusable JSON configs.
 
 ### Solution
@@ -27,7 +27,7 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 - Upload Excel data and optionally load a saved config.
 - Preview curves and set the fit window (auto or manual).
 - Run analysis and generate plots and tables.
-- Export results, plots, and a PDF report as a zip.
+- Export results, plots, and configs as a zip.
 - Reuse configs to repeat the same analysis on new runs.
 
 ### **Methods**
@@ -42,7 +42,7 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 ### Scope and Deliverables
 - Streamlit analysis app with reusable configs.
 - Overlay, small-multiple, and comparison plots.
-- CSV results, long-format data, HTML/PNG plots, and PDF reports.
+- CSV results, long-format data, and HTML/PNG plots.
 - Zip exports suitable for cross-run comparisons.
 
 ### Tech Stack
@@ -50,7 +50,7 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 - pandas, numpy
 - plotly
 - streamlit
-- reportlab
+- openpyxl
 
 ## Quick Start (Local)
 Run the app locally from the repo root:
