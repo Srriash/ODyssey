@@ -837,6 +837,9 @@ def main():
     with col_a:
         run_button = st.button("Run analysis", type="primary")
     if run_button:
+        if not blank_normalized and not blank_cols:
+            st.error("Select blank columns or mark OD values as blank normalized before running analysis.")
+            return
         if not available_cols:
             st.error("No treatment columns selected.")
             return
