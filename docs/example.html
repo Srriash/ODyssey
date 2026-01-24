@@ -96,31 +96,46 @@
             </article>
             <article class="step">
               <span class="step-number">03</span>
-              <h3>Blank normalization (optional)</h3>
+              <h3>Blank normalization</h3>
               <p>Keep <strong>OD values are blank normalized</strong> checked. No blank columns are needed for this dataset.</p>
             </article>
             <article class="step">
               <span class="step-number">04</span>
               <h3>Map treatments + replicates</h3>
-              <p>Create one replicate group per OD column.</p>
+              <p>Create replicate groups by treatment.</p>
               <ul>
-                <li>Select a single OD column, use its column name as the treatment name, and click <strong>Add replicate group</strong>.</li>
-                <li>Repeat until all OD columns are assigned.</li>
+                <li>Select <strong>treatmentA_rep1</strong>, <strong>treatmentA_rep2</strong>, and <strong>treatmentA_rep3</strong>, then click <strong>Add replicate group</strong>.</li>
+                <li>The app will auto-suggest a treatment name; edit it if you want.</li>
+                <li>Repeat the same process for the other two treatments.</li>
               </ul>
             </article>
             <article class="step">
               <span class="step-number">05</span>
-              <h3>Make the plots</h3>
-              <p>Set plot mode to <strong>Overlay (compare treatments)</strong>.</p>
+              <h3>Fit window</h3>
+              <p>Set the exponential window manually to <strong>170–240 minutes</strong>.</p>
               <ul>
-                <li>Set the plot title to <strong>Example run 1</strong>.</li>
-                <li>Leave SD bands off (each treatment has a single replicate here).</li>
+                <li>Drag the window handles until the highlighted range reads 170 to 240.</li>
+                <li>Use the same window for both example runs.</li>
               </ul>
             </article>
             <article class="step">
               <span class="step-number">06</span>
-              <h3>Fit and export</h3>
-              <p>Leave the default highlighted window, run analysis, and download the zip export.</p>
+              <h3>Make the plots</h3>
+              <p>Set plot mode to <strong>Overlay (compare treatments)</strong>.</p>
+              <ul>
+                <li>Set the plot title to <strong>Example run 1</strong>.</li>
+                <li>Leave SD bands on (each treatment has three replicates).</li>
+              </ul>
+            </article>
+            <article class="step">
+              <span class="step-number">07</span>
+              <h3>Run analysis</h3>
+              <p>Run the analysis after setting the window.</p>
+            </article>
+            <article class="step">
+              <span class="step-number">08</span>
+              <h3>Export</h3>
+              <p>Download the zip export.</p>
               <ul>
                 <li>Keep Results CSV and Config JSON enabled.</li>
                 <li>Enable <strong>Long format CSV</strong>.</li>
@@ -139,6 +154,7 @@
               <p>Repeat the same steps for <strong>example_run2.xlsx</strong>.</p>
               <ul>
                 <li>Use <strong>Sheet1</strong>, time in <strong>minutes</strong>, and blank-normalized data.</li>
+                <li>Set the exponential window to <strong>170–240 minutes</strong>.</li>
                 <li>Export with <strong>Long format CSV</strong> enabled.</li>
                 <li>Save the zip as <strong>example_run2.zip</strong>.</li>
               </ul>
