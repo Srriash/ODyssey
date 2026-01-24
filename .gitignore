@@ -1,4 +1,15 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-odyssey.egg-info/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.cache/
+.ipynb_checkpoints/
+.venv/
+.env
+.env.*
+*.log
+dist/
+build/
+*.egg-info/
