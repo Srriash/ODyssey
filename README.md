@@ -9,6 +9,8 @@ config-first workflow lets users rerun the same analysis on new files without re
 
 Read the Website for more: https://srriash.github.io/ODyssey-Growth-curve-workbench/
 
+##Proposal
+
 ### Problem Statement
 Growth curve workflows often require repeated setup: selecting sheets, time columns, replicate
 mappings, and fit windows for every run. This slows iteration, creates inconsistency, and makes
