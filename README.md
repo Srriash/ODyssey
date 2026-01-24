@@ -1,4 +1,5 @@
 # ODyssey
+Read the Website for more: https://srriash.github.io/ODyssey-Growth-curve-workbench/
 
 ## Project Proposal
 
@@ -6,8 +7,6 @@
 ODyssey - Growth Curve Workbench is a web app for analyzing plate reader growth curves. It turns
 raw Excel files into reusable analyses with clear fit windows, QC flags, and exportable plots. A
 config-first workflow lets users rerun the same analysis on new files without re-entering settings.
-
-Read the Website for more: https://srriash.github.io/ODyssey-Growth-curve-workbench/
 
 ### Problem Statement
 Growth curve workflows often require repeated setup: selecting sheets, time columns, replicate
@@ -44,17 +43,3 @@ Deliver a Streamlit app that integrates data ingestion, analysis, visualization,
 - Overlay, small-multiple, and comparison plots.
 - CSV results, long-format data, and HTML/PNG plots.
 - Zip exports suitable for cross-run comparisons.
-
-### Tech Stack
-- Python 3.9+
-- pandas, numpy
-- plotly
-- streamlit
-- openpyxl
-
-## Quick Start (Local)
-Run the app locally from the repo root:
-```bash
-pip install -r requirements.txt
-streamlit run app.py
-```
